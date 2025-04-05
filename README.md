@@ -1,8 +1,8 @@
 # crm_mosia
 
 
-- Documentação Token temporário: ok
-- Documentação API Publica de ocorrências:
-- Documentação API Publica Mensageria:
-- Documentação API Publica de meeting:
-- Documentação Obter Token:
+- Token temporário: ok
+- API Publica de ocorrências:
+- API Publica Mensageria:
+- API Publica de meeting:
+- Obter Token:
