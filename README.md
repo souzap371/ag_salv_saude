@@ -9,7 +9,5 @@
 
 BANCO DE DADOS
 - Informar a empresa os objetos a serem criados no banco.
-- API Publica Mensageria:
-- API Publica de meeting:
-- Obter Token:
+
 
