@@ -1,6 +1,5 @@
 package com.crm.integration.model;
 
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -143,5 +142,5 @@ public class Ocorrencia {
     public void setFormularios(List<Formulario> formularios) {
         this.formularios = formularios;
     }
-    
+
 }
