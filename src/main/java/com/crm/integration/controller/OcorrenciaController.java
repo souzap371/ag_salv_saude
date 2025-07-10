@@ -1,5 +1,7 @@
 package com.crm.integration.controller;
 
+import com.crm.integration.dto.MosiaRequestDTO;
+import com.crm.integration.mapper.OcorrenciaMapper;
 import com.crm.integration.model.AlterarDatasRequest;
 import com.crm.integration.model.AnotacaoRequest;
 import com.crm.integration.model.Ocorrencia;
@@ -21,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -31,338 +34,398 @@ import java.time.ZoneId;
 @RequestMapping("/clientes/ocorrencias")
 public class OcorrenciaController {
 
-    private static final Logger log = LoggerFactory.getLogger(OcorrenciaController.class);
+        @Value("${mosia.token}")
+        private String mosiaToken;
 
-    @Autowired
-    private OcorrenciaRepository ocorrenciaRepository;
+        private static final Logger log = LoggerFactory.getLogger(OcorrenciaController.class);
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private OcorrenciaRepository ocorrenciaRepository;
 
-    // CRIAR OCORRENCIA
-    @PostMapping
-    public ResponseEntity<OcorrenciaResponse> criarOcorrencia(
-            @RequestHeader("Authorization") String authorization,
-            @RequestBody Ocorrencia ocorrencia) {
+        @Autowired
+        private ObjectMapper objectMapper;
 
-        // Validação do token de autorização
-        // if (!isValidToken(authorization)) {
-        // OcorrenciaResponse response = new OcorrenciaResponse(false, "Token de
-        // autorização inválido.", 401,
-        // System.currentTimeMillis(), null);
-        // return ResponseEntity.status(401).body(response);
-        // }
-        if (!isValidToken(authorization)) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(new OcorrenciaResponse(
-                            false,
-                            "Token de autorização inválido.",
-                            401,
-                            System.currentTimeMillis(),
-                            null));
-        }
-        // 1) seu fluxo normal de validação e save
-        ocorrencia.setDataRegistro(LocalDateTime.now());
-        ocorrencia.setDataAtualizacao(LocalDateTime.now());
-        Ocorrencia saved = ocorrenciaRepository.save(ocorrencia);
+        // CRIAR OCORRENCIA
+        @PostMapping
+        public ResponseEntity<OcorrenciaResponse> criarOcorrencia(
+                        @RequestHeader("Authorization") String authorization,
+                        @RequestBody Ocorrencia ocorrencia) {
+                if (!isValidToken(authorization)) {
+                        return ResponseEntity
+                                        .status(HttpStatus.UNAUTHORIZED)
+                                        .body(new OcorrenciaResponse(
+                                                        false,
+                                                        "Token de autorização inválido.",
+                                                        401,
+                                                        System.currentTimeMillis(),
+                                                        null));
+                }
+                // 1) seu fluxo normal de validação e save
+                ocorrencia.setDataRegistro(LocalDateTime.now());
+                ocorrencia.setDataAtualizacao(LocalDateTime.now());
+                Ocorrencia saved = ocorrenciaRepository.save(ocorrencia);
 
-        // 2) agora serializa e insere na tabela de BLOBs
+                // 2) agora serializa e insere na tabela de BLOBs
 
-        try {
-            byte[] json = objectMapper.writeValueAsBytes(saved);
-            Timestamp dtCarga = Timestamp.valueOf(saved.getDataRegistro());
-            Timestamp dtProcessa = Timestamp.valueOf(saved.getDataAtualizacao());
-            ocorrenciaRepository.saveBlob(
-                    saved.getId(),
-                    json,
-                    dtCarga,
-                    dtProcessa);
+                try {
+                        byte[] json = objectMapper.writeValueAsBytes(saved);
+                        Timestamp dtCarga = Timestamp.valueOf(saved.getDataRegistro());
+                        Timestamp dtProcessa = Timestamp.valueOf(saved.getDataAtualizacao());
+                        ocorrenciaRepository.saveBlob(
+                                        saved.getId(),
+                                        json,
+                                        dtCarga,
+                                        dtProcessa);
 
-        } catch (JsonProcessingException e) {
-            log.error("Erro ao serializar Ocorrencia para BLOB", e);
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new OcorrenciaResponse(
-                            false,
-                            "Erro interno ao processar a ocorrência.",
-                            500,
-                            System.currentTimeMillis(),
-                            null));
-        }
-        // 4) Resposta de sucesso
-        return ResponseEntity.ok(new OcorrenciaResponse(
-                true,
-                "Ocorrência criada e blob salvo com sucesso.",
-                200,
-                System.currentTimeMillis(),
-                saved));
-
-        // // Definir data de registro e atualização
-        // ocorrencia.setDataRegistro(LocalDateTime.now());
-        // ocorrencia.setDataAtualizacao(LocalDateTime.now());
-
-        // // Salvar a ocorrência no banco de dados
-        // Ocorrencia savedOcorrencia = ocorrenciaRepository.save(ocorrencia);
-
-        // // Construir a resposta
-        // OcorrenciaResponse response = new OcorrenciaResponse(true, "Ocorrência criada
-        // com sucesso.", 200, System.currentTimeMillis(), savedOcorrencia);
-        // return ResponseEntity.ok(response);
-    }
-
-    // DETALHE DA OCORRÊNCIA
-    @GetMapping("/{protocolo}")
-    public ResponseEntity<OcorrenciaResponse> detalheOcorrencia(
-            @RequestHeader("Authorization") String authorization,
-            @PathVariable("protocolo") String protocolo) {
-
-        // Validação do token de autorização (implemente a lógica conforme sua
-        // necessidade)
-        if (!isValidToken(authorization)) {
-            OcorrenciaResponse response = new OcorrenciaResponse(false, "Token de autorização inválido.", 401,
-                    System.currentTimeMillis(), null);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                } catch (JsonProcessingException e) {
+                        log.error("Erro ao serializar Ocorrencia para BLOB", e);
+                        return ResponseEntity
+                                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body(new OcorrenciaResponse(
+                                                        false,
+                                                        "Erro interno ao processar a ocorrência.",
+                                                        500,
+                                                        System.currentTimeMillis(),
+                                                        null));
+                }
+                // 4) Resposta de sucesso
+                return ResponseEntity.ok(new OcorrenciaResponse(
+                                true,
+                                "Ocorrência criada e blob salvo com sucesso.",
+                                200,
+                                System.currentTimeMillis(),
+                                saved));
         }
 
-        // Buscar a ocorrência pelo protocolo informado
-        Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
-        if (ocorrenciaOpt.isPresent()) {
-            Ocorrencia ocorrencia = ocorrenciaOpt.get();
-            OcorrenciaResponse response = new OcorrenciaResponse(true,
-                    "Detalhes da ocorrência encontrados com sucesso.", 200, System.currentTimeMillis(), ocorrencia);
-            return ResponseEntity.ok(response);
-        } else {
-            OcorrenciaResponse response = new OcorrenciaResponse(false, "Ocorrência não encontrada.", 404,
-                    System.currentTimeMillis(), null);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-    }
+        @PostMapping("/mosia")
+        public ResponseEntity<OcorrenciaResponse> receberOcorrenciaDoMosia(
+                        @RequestHeader("Authorization") String authorization,
+                        @RequestBody MosiaRequestDTO payload) {
 
-    // ATUALIZAR STATUS DA OCORRÊNCIA
-    @PutMapping("/{protocolo}/status")
-    public ResponseEntity<OcorrenciaResponse> atualizarStatus(
-            @RequestHeader("Authorization") String authorization,
-            @PathVariable("protocolo") String protocolo,
-            @RequestBody StatusUpdateRequest request) {
+                if (!isValidToken(authorization)) {
+                        return ResponseEntity
+                                        .status(HttpStatus.UNAUTHORIZED)
+                                        .body(new OcorrenciaResponse(
+                                                        false,
+                                                        "Token de autorização inválido.",
+                                                        401,
+                                                        System.currentTimeMillis(),
+                                                        null));
+                }
 
-        if (!isValidToken(authorization)) {
-            OcorrenciaResponse response = new OcorrenciaResponse(false, "Token de autorização inválido.", 401,
-                    System.currentTimeMillis(), null);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        }
+                try {
+                        // Mapeia o DTO do Mosia para a entidade Ocorrencia
+                        Ocorrencia ocorrencia = OcorrenciaMapper.fromMosia(payload.getOcorrencia());
 
-        Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
-        if (!ocorrenciaOpt.isPresent()) {
-            OcorrenciaResponse response = new OcorrenciaResponse(false, "Ocorrência não encontrada.", 404,
-                    System.currentTimeMillis(), null);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
+                        // Define a funcionalidade da ocorrência (vinda do payload)
+                        ocorrencia.setIdFuncionalidade(payload.getFuncionalidade().getId().intValue());
 
-        Ocorrencia ocorrencia = ocorrenciaOpt.get();
+                        // Define data de registro e atualização
+                        ocorrencia.setDataRegistro(LocalDateTime.now());
+                        ocorrencia.setDataAtualizacao(LocalDateTime.now());
 
-        // Atualiza o status da ocorrência; aqui, por exemplo, atualizamos o campo
-        // "rascunho"
-        if (request.getRascunho() != null) {
-            ocorrencia.setRascunho(request.getRascunho());
-        }
+                        // Salva a ocorrência no banco
+                        Ocorrencia saved = ocorrenciaRepository.save(ocorrencia);
 
-        // Atualiza a data de modificação
-        ocorrencia.setDataAtualizacao(LocalDateTime.now());
-        Ocorrencia updatedOcorrencia = ocorrenciaRepository.save(ocorrencia);
+                        // Serializa e salva como BLOB
+                        byte[] json = objectMapper.writeValueAsBytes(saved);
+                        Timestamp dtCarga = Timestamp.valueOf(saved.getDataRegistro());
+                        Timestamp dtProcessa = Timestamp.valueOf(saved.getDataAtualizacao());
 
-        OcorrenciaResponse response = new OcorrenciaResponse(true, "Status da ocorrência atualizado com sucesso.", 200,
-                System.currentTimeMillis(), updatedOcorrencia);
-        return ResponseEntity.ok(response);
-    }
+                        ocorrenciaRepository.saveBlob(
+                                        saved.getId(),
+                                        json,
+                                        dtCarga,
+                                        dtProcessa);
 
-    // CRIAR ANOTAÇÃO
-    @PostMapping("/{protocolo}/anotacao")
-    public ResponseEntity<OcorrenciaResponse> criarAnotacao(
-            @RequestHeader("Authorization") String authorization,
-            @PathVariable("protocolo") String protocolo,
-            @RequestBody AnotacaoRequest request) {
+                        return ResponseEntity.ok(new OcorrenciaResponse(
+                                        true,
+                                        "Ocorrência do MOSIA criada e blob salvo com sucesso.",
+                                        200,
+                                        System.currentTimeMillis(),
+                                        saved));
 
-        if (!isValidToken(authorization)) {
-            OcorrenciaResponse response = new OcorrenciaResponse(
-                    false,
-                    "Token de autorização inválido.",
-                    401,
-                    System.currentTimeMillis(),
-                    null);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        }
-
-        Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
-        if (!ocorrenciaOpt.isPresent()) {
-            OcorrenciaResponse response = new OcorrenciaResponse(
-                    false,
-                    "Ocorrência não encontrada.",
-                    404,
-                    System.currentTimeMillis(),
-                    null);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                } catch (JsonProcessingException e) {
+                        log.error("Erro ao serializar Ocorrencia para BLOB", e);
+                        return ResponseEntity
+                                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body(new OcorrenciaResponse(
+                                                        false,
+                                                        "Erro interno ao processar a ocorrência.",
+                                                        500,
+                                                        System.currentTimeMillis(),
+                                                        null));
+                } catch (Exception e) {
+                        log.error("Erro geral ao processar payload do MOSIA", e);
+                        return ResponseEntity
+                                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body(new OcorrenciaResponse(
+                                                        false,
+                                                        "Erro interno ao salvar ocorrência.",
+                                                        500,
+                                                        System.currentTimeMillis(),
+                                                        null));
+                }
         }
 
-        Ocorrencia ocorrencia = ocorrenciaOpt.get();
-        ocorrencia.setAnotacao(request.getAnotacao());
-        ocorrencia.setDataAtualizacao(LocalDateTime.now());
-        Ocorrencia updatedOcorrencia = ocorrenciaRepository.save(ocorrencia);
+        // DETALHE DA OCORRÊNCIA
+        @GetMapping("/{protocolo}")
+        public ResponseEntity<OcorrenciaResponse> detalheOcorrencia(
+                        @RequestHeader("Authorization") String authorization,
+                        @PathVariable("protocolo") String protocolo) {
 
-        OcorrenciaResponse response = new OcorrenciaResponse(
-                true,
-                "Anotação criada com sucesso.",
-                200,
-                System.currentTimeMillis(),
-                updatedOcorrencia);
-        return ResponseEntity.ok(response);
-    }
+                // Validação do token de autorização (implemente a lógica conforme sua
+                // necessidade)
+                if (!isValidToken(authorization)) {
+                        OcorrenciaResponse response = new OcorrenciaResponse(false, "Token de autorização inválido.",
+                                        401,
+                                        System.currentTimeMillis(), null);
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                }
 
-    // ATIVAR OCORRENCIA
-    @PutMapping("/{protocolo}/ativar")
-    public ResponseEntity<OcorrenciaResponse> ativarOcorrencia(
-            @RequestHeader("Authorization") String authorization,
-            @PathVariable("protocolo") String protocolo) {
-
-        if (!isValidToken(authorization)) {
-            OcorrenciaResponse response = new OcorrenciaResponse(
-                    false,
-                    "Token de autorização inválido.",
-                    401,
-                    System.currentTimeMillis(),
-                    null);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                // Buscar a ocorrência pelo protocolo informado
+                Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
+                if (ocorrenciaOpt.isPresent()) {
+                        Ocorrencia ocorrencia = ocorrenciaOpt.get();
+                        OcorrenciaResponse response = new OcorrenciaResponse(true,
+                                        "Detalhes da ocorrência encontrados com sucesso.", 200,
+                                        System.currentTimeMillis(), ocorrencia);
+                        return ResponseEntity.ok(response);
+                } else {
+                        OcorrenciaResponse response = new OcorrenciaResponse(false, "Ocorrência não encontrada.", 404,
+                                        System.currentTimeMillis(), null);
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                }
         }
 
-        Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
-        if (!ocorrenciaOpt.isPresent()) {
-            OcorrenciaResponse response = new OcorrenciaResponse(
-                    false,
-                    "Ocorrência não encontrada.",
-                    404,
-                    System.currentTimeMillis(),
-                    null);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        // ATUALIZAR STATUS DA OCORRÊNCIA
+        @PutMapping("/{protocolo}/status")
+        public ResponseEntity<OcorrenciaResponse> atualizarStatus(
+                        @RequestHeader("Authorization") String authorization,
+                        @PathVariable("protocolo") String protocolo,
+                        @RequestBody StatusUpdateRequest request) {
+
+                if (!isValidToken(authorization)) {
+                        OcorrenciaResponse response = new OcorrenciaResponse(false, "Token de autorização inválido.",
+                                        401,
+                                        System.currentTimeMillis(), null);
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                }
+
+                Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
+                if (!ocorrenciaOpt.isPresent()) {
+                        OcorrenciaResponse response = new OcorrenciaResponse(false, "Ocorrência não encontrada.", 404,
+                                        System.currentTimeMillis(), null);
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                }
+
+                Ocorrencia ocorrencia = ocorrenciaOpt.get();
+
+                // Atualiza o status da ocorrência; aqui, por exemplo, atualizamos o campo
+                // "rascunho"
+                if (request.getRascunho() != null) {
+                        ocorrencia.setRascunho(request.getRascunho());
+                }
+
+                // Atualiza a data de modificação
+                ocorrencia.setDataAtualizacao(LocalDateTime.now());
+                Ocorrencia updatedOcorrencia = ocorrenciaRepository.save(ocorrencia);
+
+                OcorrenciaResponse response = new OcorrenciaResponse(true,
+                                "Status da ocorrência atualizado com sucesso.", 200,
+                                System.currentTimeMillis(), updatedOcorrencia);
+                return ResponseEntity.ok(response);
         }
 
-        Ocorrencia ocorrencia = ocorrenciaOpt.get();
+        // CRIAR ANOTAÇÃO
+        @PostMapping("/{protocolo}/anotacao")
+        public ResponseEntity<OcorrenciaResponse> criarAnotacao(
+                        @RequestHeader("Authorization") String authorization,
+                        @PathVariable("protocolo") String protocolo,
+                        @RequestBody AnotacaoRequest request) {
 
-        if (Boolean.FALSE.equals(ocorrencia.getRascunho())) {
-            OcorrenciaResponse response = new OcorrenciaResponse(
-                    false,
-                    "A ocorrência já está ativa.",
-                    400,
-                    System.currentTimeMillis(),
-                    null);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                if (!isValidToken(authorization)) {
+                        OcorrenciaResponse response = new OcorrenciaResponse(
+                                        false,
+                                        "Token de autorização inválido.",
+                                        401,
+                                        System.currentTimeMillis(),
+                                        null);
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                }
+
+                Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
+                if (!ocorrenciaOpt.isPresent()) {
+                        OcorrenciaResponse response = new OcorrenciaResponse(
+                                        false,
+                                        "Ocorrência não encontrada.",
+                                        404,
+                                        System.currentTimeMillis(),
+                                        null);
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                }
+
+                Ocorrencia ocorrencia = ocorrenciaOpt.get();
+                ocorrencia.setAnotacao(request.getAnotacao());
+                ocorrencia.setDataAtualizacao(LocalDateTime.now());
+                Ocorrencia updatedOcorrencia = ocorrenciaRepository.save(ocorrencia);
+
+                OcorrenciaResponse response = new OcorrenciaResponse(
+                                true,
+                                "Anotação criada com sucesso.",
+                                200,
+                                System.currentTimeMillis(),
+                                updatedOcorrencia);
+                return ResponseEntity.ok(response);
         }
 
-        ocorrencia.setRascunho(false); // Ativa a ocorrência
-        ocorrencia.setDataAtualizacao(LocalDateTime.now());
-        Ocorrencia updated = ocorrenciaRepository.save(ocorrencia);
+        // ATIVAR OCORRENCIA
+        @PutMapping("/{protocolo}/ativar")
+        public ResponseEntity<OcorrenciaResponse> ativarOcorrencia(
+                        @RequestHeader("Authorization") String authorization,
+                        @PathVariable("protocolo") String protocolo) {
 
-        OcorrenciaResponse response = new OcorrenciaResponse(
-                true,
-                "Ocorrência ativada com sucesso.",
-                200,
-                System.currentTimeMillis(),
-                updated);
-        return ResponseEntity.ok(response);
-    }
+                if (!isValidToken(authorization)) {
+                        OcorrenciaResponse response = new OcorrenciaResponse(
+                                        false,
+                                        "Token de autorização inválido.",
+                                        401,
+                                        System.currentTimeMillis(),
+                                        null);
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                }
 
-    // LISTAR ÚLTIMOS PROTOCOLOS
-    @GetMapping("/ultimos-protocolos")
-    public ResponseEntity<UltimosProtocolosResponse> listarUltimosProtocolos(
-            @RequestHeader("Authorization") String authorization) {
+                Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
+                if (!ocorrenciaOpt.isPresent()) {
+                        OcorrenciaResponse response = new OcorrenciaResponse(
+                                        false,
+                                        "Ocorrência não encontrada.",
+                                        404,
+                                        System.currentTimeMillis(),
+                                        null);
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                }
 
-        // Validação do token de autorização
-        if (!isValidToken(authorization)) {
-            UltimosProtocolosResponse response = new UltimosProtocolosResponse(
-                    false,
-                    "Token de autorização inválido.",
-                    401,
-                    System.currentTimeMillis(),
-                    null);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                Ocorrencia ocorrencia = ocorrenciaOpt.get();
+
+                if (Boolean.FALSE.equals(ocorrencia.getRascunho())) {
+                        OcorrenciaResponse response = new OcorrenciaResponse(
+                                        false,
+                                        "A ocorrência já está ativa.",
+                                        400,
+                                        System.currentTimeMillis(),
+                                        null);
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                }
+
+                ocorrencia.setRascunho(false); // Ativa a ocorrência
+                ocorrencia.setDataAtualizacao(LocalDateTime.now());
+                Ocorrencia updated = ocorrenciaRepository.save(ocorrencia);
+
+                OcorrenciaResponse response = new OcorrenciaResponse(
+                                true,
+                                "Ocorrência ativada com sucesso.",
+                                200,
+                                System.currentTimeMillis(),
+                                updated);
+                return ResponseEntity.ok(response);
         }
 
-        // Buscar os 10 últimos registros ordenados pela data de registro
-        List<Ocorrencia> ultimasOcorrencias = ocorrenciaRepository.findTop10ByOrderByDataRegistroDesc();
-        // Extraindo os protocolos
-        List<String> protocolos = ultimasOcorrencias.stream()
-                .map(Ocorrencia::getProtocolo)
-                .collect(Collectors.toList());
+        // LISTAR ÚLTIMOS PROTOCOLOS
+        @GetMapping("/ultimos-protocolos")
+        public ResponseEntity<UltimosProtocolosResponse> listarUltimosProtocolos(
+                        @RequestHeader("Authorization") String authorization) {
 
-        UltimosProtocolosResponse response = new UltimosProtocolosResponse(
-                true,
-                "Protocolos listados com sucesso.",
-                200,
-                System.currentTimeMillis(),
-                protocolos);
-        return ResponseEntity.ok(response);
-    }
+                // Validação do token de autorização
+                if (!isValidToken(authorization)) {
+                        UltimosProtocolosResponse response = new UltimosProtocolosResponse(
+                                        false,
+                                        "Token de autorização inválido.",
+                                        401,
+                                        System.currentTimeMillis(),
+                                        null);
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                }
 
-    // ALTERAR DATAS DA OCORRÊNCIA
-    @PutMapping("/{protocolo}/datas")
-    public ResponseEntity<OcorrenciaResponse> alterarDatas(
-            @RequestHeader("Authorization") String authorization,
-            @PathVariable("protocolo") String protocolo,
-            @RequestBody AlterarDatasRequest request) {
+                // Buscar os 10 últimos registros ordenados pela data de registro
+                List<Ocorrencia> ultimasOcorrencias = ocorrenciaRepository.findTop10ByOrderByDataRegistroDesc();
+                // Extraindo os protocolos
+                List<String> protocolos = ultimasOcorrencias.stream()
+                                .map(Ocorrencia::getProtocolo)
+                                .collect(Collectors.toList());
 
-        if (!isValidToken(authorization)) {
-            OcorrenciaResponse response = new OcorrenciaResponse(
-                    false,
-                    "Token de autorização inválido.",
-                    401,
-                    System.currentTimeMillis(),
-                    null);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                UltimosProtocolosResponse response = new UltimosProtocolosResponse(
+                                true,
+                                "Protocolos listados com sucesso.",
+                                200,
+                                System.currentTimeMillis(),
+                                protocolos);
+                return ResponseEntity.ok(response);
         }
 
-        Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
-        if (!ocorrenciaOpt.isPresent()) {
-            OcorrenciaResponse response = new OcorrenciaResponse(
-                    false,
-                    "Ocorrência não encontrada.",
-                    404,
-                    System.currentTimeMillis(),
-                    null);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        // ALTERAR DATAS DA OCORRÊNCIA
+        @PutMapping("/{protocolo}/datas")
+        public ResponseEntity<OcorrenciaResponse> alterarDatas(
+                        @RequestHeader("Authorization") String authorization,
+                        @PathVariable("protocolo") String protocolo,
+                        @RequestBody AlterarDatasRequest request) {
+
+                if (!isValidToken(authorization)) {
+                        OcorrenciaResponse response = new OcorrenciaResponse(
+                                        false,
+                                        "Token de autorização inválido.",
+                                        401,
+                                        System.currentTimeMillis(),
+                                        null);
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                }
+
+                Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
+                if (!ocorrenciaOpt.isPresent()) {
+                        OcorrenciaResponse response = new OcorrenciaResponse(
+                                        false,
+                                        "Ocorrência não encontrada.",
+                                        404,
+                                        System.currentTimeMillis(),
+                                        null);
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                }
+
+                Ocorrencia ocorrencia = ocorrenciaOpt.get();
+
+                // Converter timestamp para LocalDateTime e atualizar os campos, se enviados
+                if (request.getDataRegistro() != null) {
+                        LocalDateTime novaDataRegistro = Instant.ofEpochMilli(request.getDataRegistro())
+                                        .atZone(ZoneId.systemDefault())
+                                        .toLocalDateTime();
+                        ocorrencia.setDataRegistro(novaDataRegistro);
+                }
+
+                if (request.getDataAtualizacao() != null) {
+                        LocalDateTime novaDataAtualizacao = Instant.ofEpochMilli(request.getDataAtualizacao())
+                                        .atZone(ZoneId.systemDefault())
+                                        .toLocalDateTime();
+                        ocorrencia.setDataAtualizacao(novaDataAtualizacao);
+                }
+
+                Ocorrencia updatedOcorrencia = ocorrenciaRepository.save(ocorrencia);
+
+                OcorrenciaResponse response = new OcorrenciaResponse(
+                                true,
+                                "Datas da ocorrência atualizadas com sucesso.",
+                                200,
+                                System.currentTimeMillis(),
+                                updatedOcorrencia);
+                return ResponseEntity.ok(response);
         }
 
-        Ocorrencia ocorrencia = ocorrenciaOpt.get();
+        // Método para validação do token (único)
+        private boolean isValidToken(String token) {
+                if (token == null || token.isEmpty()) {
+                        return false;
+                }
 
-        // Converter timestamp para LocalDateTime e atualizar os campos, se enviados
-        if (request.getDataRegistro() != null) {
-            LocalDateTime novaDataRegistro = Instant.ofEpochMilli(request.getDataRegistro())
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDateTime();
-            ocorrencia.setDataRegistro(novaDataRegistro);
+                return token.equals(mosiaToken);
         }
-
-        if (request.getDataAtualizacao() != null) {
-            LocalDateTime novaDataAtualizacao = Instant.ofEpochMilli(request.getDataAtualizacao())
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDateTime();
-            ocorrencia.setDataAtualizacao(novaDataAtualizacao);
-        }
-
-        Ocorrencia updatedOcorrencia = ocorrenciaRepository.save(ocorrencia);
-
-        OcorrenciaResponse response = new OcorrenciaResponse(
-                true,
-                "Datas da ocorrência atualizadas com sucesso.",
-                200,
-                System.currentTimeMillis(),
-                updatedOcorrencia);
-        return ResponseEntity.ok(response);
-    }
-
-    // Método para validação do token (único)
-    private boolean isValidToken(String token) {
-        // Implemente aqui a lógica de validação do token, conforme as especificações da
-        // documentação.
-        return true; // Placeholder para a lógica real de validação
-    }
 
 }
