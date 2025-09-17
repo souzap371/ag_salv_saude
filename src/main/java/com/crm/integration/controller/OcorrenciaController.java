@@ -3,6 +3,7 @@ package com.crm.integration.controller;
 import com.crm.integration.dto.MosiaRequestDTO;
 import com.crm.integration.mapper.OcorrenciaMapper;
 import com.crm.integration.model.AlterarDatasRequest;
+import com.crm.integration.model.Anotacao;
 import com.crm.integration.model.AnotacaoRequest;
 import com.crm.integration.model.Ocorrencia;
 import com.crm.integration.model.OcorrenciaResponse;
@@ -207,8 +208,7 @@ public class OcorrenciaController {
 
                 if (!isValidToken(authorization)) {
                         OcorrenciaResponse response = new OcorrenciaResponse(false, "Token de autorização inválido.",
-                                        401,
-                                        System.currentTimeMillis(), null);
+                                        401, System.currentTimeMillis(), null);
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
                 }
 
@@ -221,13 +221,16 @@ public class OcorrenciaController {
 
                 Ocorrencia ocorrencia = ocorrenciaOpt.get();
 
-                // Atualiza o status da ocorrência; aqui, por exemplo, atualizamos o campo
-                // "rascunho"
+                // Atualiza rascunho (se informado)
                 if (request.getRascunho() != null) {
                         ocorrencia.setRascunho(request.getRascunho());
                 }
 
-                // Atualiza a data de modificação
+                // Atualiza status (se informado)
+                if (request.getStatus() != null && !request.getStatus().isEmpty()) {
+                        ocorrencia.setStatus(request.getStatus());
+                }
+
                 ocorrencia.setDataAtualizacao(LocalDateTime.now());
                 Ocorrencia updatedOcorrencia = ocorrenciaRepository.save(ocorrencia);
 
@@ -245,38 +248,38 @@ public class OcorrenciaController {
                         @RequestBody AnotacaoRequest request) {
 
                 if (!isValidToken(authorization)) {
-                        OcorrenciaResponse response = new OcorrenciaResponse(
-                                        false,
-                                        "Token de autorização inválido.",
-                                        401,
-                                        System.currentTimeMillis(),
-                                        null);
-                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                                        .body(new OcorrenciaResponse(false, "Token de autorização inválido.", 401,
+                                                        System.currentTimeMillis(), null));
                 }
 
                 Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
                 if (!ocorrenciaOpt.isPresent()) {
-                        OcorrenciaResponse response = new OcorrenciaResponse(
-                                        false,
-                                        "Ocorrência não encontrada.",
-                                        404,
-                                        System.currentTimeMillis(),
-                                        null);
-                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                        .body(new OcorrenciaResponse(false, "Ocorrência não encontrada.", 404,
+                                                        System.currentTimeMillis(), null));
                 }
 
                 Ocorrencia ocorrencia = ocorrenciaOpt.get();
-                ocorrencia.setAnotacao(request.getAnotacao());
+
+                // Criar nova anotação
+                Anotacao anotacao = new Anotacao();
+                anotacao.setTexto(request.getAnotacao());
+                anotacao.setDataCriacao(LocalDateTime.now());
+                anotacao.setOcorrencia(ocorrencia);
+
+                // Adiciona na lista
+                ocorrencia.getAnotacoes().add(anotacao);
                 ocorrencia.setDataAtualizacao(LocalDateTime.now());
+
                 Ocorrencia updatedOcorrencia = ocorrenciaRepository.save(ocorrencia);
 
-                OcorrenciaResponse response = new OcorrenciaResponse(
+                return ResponseEntity.ok(new OcorrenciaResponse(
                                 true,
                                 "Anotação criada com sucesso.",
                                 200,
                                 System.currentTimeMillis(),
-                                updatedOcorrencia);
-                return ResponseEntity.ok(response);
+                                updatedOcorrencia));
         }
 
         // ATIVAR OCORRENCIA

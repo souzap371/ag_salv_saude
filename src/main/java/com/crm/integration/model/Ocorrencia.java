@@ -26,9 +26,14 @@ public class Ocorrencia {
     private String numeroContrato;
     private Integer idAssunto;
     private boolean rascunho;
-    private String anotacao;
+    // private String anotacao;
     private LocalDateTime dataRegistro;
     private LocalDateTime dataAtualizacao;
+
+    private String status;
+
+    @OneToMany(mappedBy = "ocorrencia", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Anotacao> anotacoes;
 
     @OneToOne(cascade = CascadeType.ALL)
     private Solicitante solicitante;
@@ -95,12 +100,20 @@ public class Ocorrencia {
         this.rascunho = rascunho;
     }
 
-    public String getAnotacao() {
-        return anotacao;
+    // public String getAnotacao() {
+    // return anotacao;
+    // }
+
+    // public void setAnotacao(String anotacao) {
+    // this.anotacao = anotacao;
+    // }
+
+    public List<Anotacao> getAnotacoes() {
+        return anotacoes;
     }
 
-    public void setAnotacao(String anotacao) {
-        this.anotacao = anotacao;
+    public void setAnotacoes(List<Anotacao> anotacoes) {
+        this.anotacoes = anotacoes;
     }
 
     public LocalDateTime getDataRegistro() {
@@ -117,6 +130,14 @@ public class Ocorrencia {
 
     public void setDataAtualizacao(LocalDateTime dataAtualizacao) {
         this.dataAtualizacao = dataAtualizacao;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public Solicitante getSolicitante() {
