@@ -9,34 +9,6 @@ import java.util.UUID;
 import java.net.URI;
 import java.io.IOException;
 
-// @Service
-// public class StorageService {
-
-//     private final RestTemplate rest = new RestTemplate();
-
-//     /**
-//      * Baixa URL (assinada) e salva em disco.
-//      * Retorna caminho local do arquivo salvo.
-//      */
-//     public String downloadAndSave(String url, String folder) throws IOException {
-//         byte[] content = rest.getForObject(url, byte[].class);
-//         if (content == null)
-//             throw new IOException("Arquivo vazio ou erro ao baixar: " + url);
-
-//         URI uri = URI.create(url);
-//         String rawName = Paths.get(uri.getPath()).getFileName().toString();
-//         String fileName = System.currentTimeMillis() + "_" + rawName;
-
-//         Path dir = Paths.get(folder);
-//         if (Files.notExists(dir))
-//             Files.createDirectories(dir);
-
-//         Path target = dir.resolve(fileName);
-//         Files.write(target, content, StandardOpenOption.CREATE);
-
-//         return target.toAbsolutePath().toString();
-//     }
-// }
 @Service
 public class StorageService {
 

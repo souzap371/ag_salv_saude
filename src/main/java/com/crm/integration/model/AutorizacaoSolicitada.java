@@ -2,6 +2,7 @@ package com.crm.integration.model;
 
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Data;
@@ -19,34 +20,52 @@ public class AutorizacaoSolicitada {
     @Column(nullable = false, unique = true)
     private String protocolo;
 
-    @Column(name = "id_operadora")
-    private Integer idOperadora;
+    // @Column(name = "id_operadora")
+    // private Integer idOperadora;
 
-    private String mshash;
-    private String tipo;
+    // private String mshash;
+    // private String tipo;
     private String nome;
-    private String matricula;
-    private String matriculaTitular;
-    private String equipeAtendimentoCms;
-    private String login;
-    private String idMsUsuario;
+    // private String matricula;
+    // private String matriculaTitular;
+    // private String equipeAtendimentoCms;
+    // private String login;
+    // private String idMsUsuario;
     private String tipoGuia;
     private String idTipoGuia;
     private String label; // título do formulário
+
+    private String telefoneContato;
+    private String emailContato;
+    private String observacao;
 
     private String status; // controle local (PENDENTE/APROVADO/REJEITADO)
 
     @Lob
     private String rawCallbackJson;
 
-    @Column(name = "created_at")
-    private OffsetDateTime createdAt = OffsetDateTime.now();
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private OffsetDateTime createdAt;
 
-    @Column(name = "updated_at")
-    private OffsetDateTime updatedAt = OffsetDateTime.now();
+    @Column(name = "updated_at", nullable = false)
+    private OffsetDateTime updatedAt;
 
+    // RELAÇÃO COM AUTORIZACAOARQUIVO
     @OneToMany(mappedBy = "autorizacao", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AutorizacaoArquivo> arquivos;
+    private List<AutorizacaoArquivo> arquivos = new ArrayList<>();
+
+    // ======= MÉTODOS DE CICLO DE VIDA =======
+    @PrePersist
+    public void prePersist() {
+        OffsetDateTime now = OffsetDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = OffsetDateTime.now();
+    }
 
     public Long getId() {
         return id;
@@ -64,29 +83,29 @@ public class AutorizacaoSolicitada {
         this.protocolo = protocolo;
     }
 
-    public Integer getIdOperadora() {
-        return idOperadora;
-    }
+    // public Integer getIdOperadora() {
+    // return idOperadora;
+    // }
 
-    public void setIdOperadora(Integer idOperadora) {
-        this.idOperadora = idOperadora;
-    }
+    // public void setIdOperadora(Integer idOperadora) {
+    // this.idOperadora = idOperadora;
+    // }
 
-    public String getMshash() {
-        return mshash;
-    }
+    // public String getMshash() {
+    // return mshash;
+    // }
 
-    public void setMshash(String mshash) {
-        this.mshash = mshash;
-    }
+    // public void setMshash(String mshash) {
+    // this.mshash = mshash;
+    // }
 
-    public String getTipo() {
-        return tipo;
-    }
+    // public String getTipo() {
+    // return tipo;
+    // }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
+    // public void setTipo(String tipo) {
+    // this.tipo = tipo;
+    // }
 
     public String getNome() {
         return nome;
@@ -96,45 +115,45 @@ public class AutorizacaoSolicitada {
         this.nome = nome;
     }
 
-    public String getMatricula() {
-        return matricula;
-    }
+    // public String getMatricula() {
+    // return matricula;
+    // }
 
-    public void setMatricula(String matricula) {
-        this.matricula = matricula;
-    }
+    // public void setMatricula(String matricula) {
+    // this.matricula = matricula;
+    // }
 
-    public String getMatriculaTitular() {
-        return matriculaTitular;
-    }
+    // public String getMatriculaTitular() {
+    // return matriculaTitular;
+    // }
 
-    public void setMatriculaTitular(String matriculaTitular) {
-        this.matriculaTitular = matriculaTitular;
-    }
+    // public void setMatriculaTitular(String matriculaTitular) {
+    // this.matriculaTitular = matriculaTitular;
+    // }
 
-    public String getEquipeAtendimentoCms() {
-        return equipeAtendimentoCms;
-    }
+    // public String getEquipeAtendimentoCms() {
+    // return equipeAtendimentoCms;
+    // }
 
-    public void setEquipeAtendimentoCms(String equipeAtendimentoCms) {
-        this.equipeAtendimentoCms = equipeAtendimentoCms;
-    }
+    // public void setEquipeAtendimentoCms(String equipeAtendimentoCms) {
+    // this.equipeAtendimentoCms = equipeAtendimentoCms;
+    // }
 
-    public String getLogin() {
-        return login;
-    }
+    // public String getLogin() {
+    // return login;
+    // }
 
-    public void setLogin(String login) {
-        this.login = login;
-    }
+    // public void setLogin(String login) {
+    // this.login = login;
+    // }
 
-    public String getIdMsUsuario() {
-        return idMsUsuario;
-    }
+    // public String getIdMsUsuario() {
+    // return idMsUsuario;
+    // }
 
-    public void setIdMsUsuario(String idMsUsuario) {
-        this.idMsUsuario = idMsUsuario;
-    }
+    // public void setIdMsUsuario(String idMsUsuario) {
+    // this.idMsUsuario = idMsUsuario;
+    // }
 
     public String getTipoGuia() {
         return tipoGuia;
@@ -200,4 +219,27 @@ public class AutorizacaoSolicitada {
         this.arquivos = arquivos;
     }
 
+    public String getTelefoneContato() {
+        return telefoneContato;
+    }
+
+    public String getEmailContato() {
+        return emailContato;
+    }
+
+    public String getObservacao() {
+        return observacao;
+    }
+
+    public void setTelefoneContato(String telefoneContato) {
+        this.telefoneContato = telefoneContato;
+    }
+
+    public void setEmailContato(String emailContato) {
+        this.emailContato = emailContato;
+    }
+
+    public void setObservacao(String observacao) {
+        this.observacao = observacao;
+    }
 }

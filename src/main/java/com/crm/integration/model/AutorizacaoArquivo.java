@@ -12,7 +12,11 @@ public class AutorizacaoArquivo {
     private Long id;
 
     private String nomeOriginal;
+
+    @Lob
+    @Column(name = "url_original")
     private String urlOriginal; // URL assinada enviada no callback
+
     private String caminhoLocal; // onde salvamos (ex: /data/arquivos/...)
     private OffsetDateTime baixadoEm;
 

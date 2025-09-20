@@ -48,4 +48,52 @@ public class CallbackSolicitacaoDTO {
 
     @JsonProperty("campos")
     private List<FormCampoDTO> campos;
+
+    @JsonProperty("telefoneContato")
+    private String telefoneContato;
+
+    @JsonProperty("emailContato")
+    private String emailContato;
+
+    @JsonProperty("observacao")
+    private String observacao;
+
+    @JsonProperty("solicitacao")
+    private SolicitacaoDTO solicitacao;
+
+    @Data
+    public static class SolicitacaoDTO {
+        @JsonProperty("formularios")
+        private List<FormularioDTO> formularios;
+    }
+
+    @Data
+    public static class FormularioDTO {
+        @JsonProperty("itens")
+        private List<ItemDTO> itens;
+    }
+
+    @Data
+    public static class ItemDTO {
+        @JsonProperty("nome-do-contato")
+        private String nomeDoContato;
+
+        @JsonProperty("celular-do-contato")
+        private String celularDoContato;
+
+        @JsonProperty("email")
+        private String email;
+
+        @JsonProperty("observacao")
+        private String observacao;
+
+        @JsonProperty("imagem-da-guia-solicitacao")
+        private List<ImagemDTO> imagemDaGuiaSolicitacao;
+    }
+
+    @Data
+    public static class ImagemDTO {
+        private String name;
+        private String url;
+    }
 }
