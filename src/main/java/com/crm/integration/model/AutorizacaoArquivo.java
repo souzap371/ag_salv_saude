@@ -20,6 +20,18 @@ public class AutorizacaoArquivo {
     private String caminhoLocal; // onde salvamos (ex: /data/arquivos/...)
     private OffsetDateTime baixadoEm;
 
+    @Lob
+    @Column(name = "cimagimagem")
+    private byte[] cimaImagem;
+
+    public byte[] getCimaImagem() {
+        return cimaImagem;
+    }
+
+    public void setCimaImagem(byte[] cimaImagem) {
+        this.cimaImagem = cimaImagem;
+    }
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "autorizacao_id")
     private AutorizacaoSolicitada autorizacao;

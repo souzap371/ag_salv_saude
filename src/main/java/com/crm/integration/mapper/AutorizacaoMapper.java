@@ -5,6 +5,9 @@ import com.crm.integration.model.AutorizacaoSolicitada;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.URL;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +65,20 @@ public class AutorizacaoMapper {
                 arquivo.setCaminhoLocal(null); // preencha se você salvar localmente
                 arquivo.setBaixadoEm(OffsetDateTime.now());
                 arquivo.setAutorizacao(autorizacao); // importante para o relacionamento
+                // Baixa o arquivo remoto e converte para byte[]
+                try (InputStream in = new URL(img.path("url").asText()).openStream();
+                        ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+
+                    byte[] data = new byte[1024];
+                    int nRead;
+                    while ((nRead = in.read(data, 0, data.length)) != -1) {
+                        buffer.write(data, 0, nRead);
+                    }
+                    buffer.flush();
+                    arquivo.setCimaImagem(buffer.toByteArray());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 arquivos.add(arquivo);
             }
         }
