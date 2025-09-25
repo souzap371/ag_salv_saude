@@ -38,6 +38,13 @@ public class AutorizacaoMapper {
         autorizacao.setTipoGuia(assunto.path("descricao").asText());
         autorizacao.setLabel(formulario.path("nome").asText());
 
+        // === Beneficiário ===
+        JsonNode beneficiario = ocorrencia.path("beneficiario");
+        if (!beneficiario.isMissingNode()) {
+            autorizacao.setChaveUnica(beneficiario.path("chaveUnica").asText());
+            autorizacao.setNumeroContrato(beneficiario.path("numeroContrato").asText());
+        }
+
         // Campos do contato
         JsonNode itens = formulario.path("itens").get(0); // pegando o primeiro item
         autorizacao.setNome(itens.path("nome-do-contato").asText());

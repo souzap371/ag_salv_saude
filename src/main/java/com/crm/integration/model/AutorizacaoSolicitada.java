@@ -50,6 +50,12 @@ public class AutorizacaoSolicitada {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    @Column(name = "CHAVEUNICA", unique = true)
+    private String chaveUnica;
+
+    @Column(name = "NUMEROCONTRATO")
+    private String numeroContrato;
+
     // RELAÇÃO COM AUTORIZACAOARQUIVO
     @OneToMany(mappedBy = "autorizacao", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AutorizacaoArquivo> arquivos = new ArrayList<>();
@@ -81,6 +87,22 @@ public class AutorizacaoSolicitada {
 
     public void setProtocolo(String protocolo) {
         this.protocolo = protocolo;
+    }
+
+    public String getChaveUnica() {
+        return chaveUnica;
+    }
+
+    public void setChaveUnica(String chaveUnica) {
+        this.chaveUnica = chaveUnica;
+    }
+
+    public String getNumeroContrato() {
+        return numeroContrato;
+    }
+
+    public void setNumeroContrato(String numeroContrato) {
+        this.numeroContrato = numeroContrato;
     }
 
     // public Integer getIdOperadora() {
