@@ -1,23 +1,22 @@
 package com.crm.integration.model;
 
-
 public class MensagemRequest {
-    private String destinatario;
-    private String mensagem;
+    private String chaveUnica; // equivalente ao CPF no Python
+    private String msg;
 
-    public String getDestinatario() {
-        return destinatario;
+    public String getChaveUnica() {
+        return chaveUnica;
     }
 
-    public void setDestinatario(String destinatario) {
-        this.destinatario = destinatario;
+    public void setChaveUnica(String chaveUnica) {
+        this.chaveUnica = chaveUnica;
     }
 
-    public String getMensagem() {
-        return mensagem;
+    public String getMsg() {
+        return msg;
     }
 
-    public void setMensagem(String mensagem) {
-        this.mensagem = mensagem;
+    public void setMsg(String msg) {
+        this.msg = msg;
     }
 }

@@ -1,59 +1,37 @@
 package com.crm.integration.model;
 
-
 public class MensagemResponse {
-    private boolean status;
+    private boolean success;
     private String message;
-    private int statusCode;
+    private int status;
     private long timestamp;
     private Object data;
 
-    public MensagemResponse(boolean status, String message, int statusCode, long timestamp, Object data) {
-        this.status = status;
+    public MensagemResponse(boolean success, String message, int status, long timestamp, Object data) {
+        this.success = success;
         this.message = message;
-        this.statusCode = statusCode;
+        this.status = status;
         this.timestamp = timestamp;
         this.data = data;
     }
 
-    public boolean isStatus() {
-        return status;
-    }
-
-    public void setStatus(boolean status) {
-        this.status = status;
+    public boolean isSuccess() {
+        return success;
     }
 
     public String getMessage() {
         return message;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public int getStatusCode() {
-        return statusCode;
-    }
-
-    public void setStatusCode(int statusCode) {
-        this.statusCode = statusCode;
+    public int getStatus() {
+        return status;
     }
 
     public long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
     public Object getData() {
         return data;
     }
-
-    public void setData(Object data) {
-        this.data = data;
-    }
 }
-

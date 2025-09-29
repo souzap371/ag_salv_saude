@@ -4,6 +4,9 @@ import com.crm.integration.model.AgMensApp;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface AgMensAppRepository extends JpaRepository<AgMensApp, Long> {
+    List<AgMensApp> findByDtEnvioIsNull();
 }

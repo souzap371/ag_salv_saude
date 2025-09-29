@@ -27,10 +27,10 @@ public class AgMensApp {
     private String proc;
 
     @Column(name = "IDFUNCIONALIDADE")
-    private Long idFuncionalidade;
+    private String idFuncionalidade;
 
     @Column(name = "IDREGISTRO")
-    private Long idRegistro;
+    private String idRegistro;
 
     // Getters e Setters
     public Long getId() {
@@ -81,19 +81,19 @@ public class AgMensApp {
         this.proc = proc;
     }
 
-    public Long getIdFuncionalidade() {
+    public String getIdFuncionalidade() {
         return idFuncionalidade;
     }
 
-    public void setIdFuncionalidade(Long idFuncionalidade) {
+    public void setIdFuncionalidade(String idFuncionalidade) {
         this.idFuncionalidade = idFuncionalidade;
     }
 
-    public Long getIdRegistro() {
+    public String getIdRegistro() {
         return idRegistro;
     }
 
-    public void setIdRegistro(Long idRegistro) {
+    public void setIdRegistro(String idRegistro) {
         this.idRegistro = idRegistro;
     }
 }
