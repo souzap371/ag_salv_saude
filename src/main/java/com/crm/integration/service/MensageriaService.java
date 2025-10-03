@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 public class MensageriaService {
@@ -31,7 +32,8 @@ public class MensageriaService {
         AgMensApp entity = new AgMensApp();
         entity.setChaveUnica(request.getChaveUnica());
         entity.setMensagem(request.getMsg());
-        entity.setDtInclusao(LocalDateTime.now());
+        ZoneId zone = ZoneId.of("America/Sao_Paulo");
+        entity.setDtInclusao(LocalDateTime.now(zone));
         entity.setIdFuncionalidade(idFuncionalidade);
         entity.setIdRegistro(idRegistro);
         repository.save(entity);
@@ -42,7 +44,6 @@ public class MensageriaService {
         return entity;
     }
 
-    // Tornar público para o scheduler
     public boolean enviarParaMosia(MensagemRequest request) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -51,17 +52,25 @@ public class MensageriaService {
         HttpEntity<MensagemRequest> entity = new HttpEntity<>(request, headers);
 
         try {
+            System.out.println("[SERVICE] Enviando para Mosia - Chave: " + request.getChaveUnica() +
+                    " | Msg: " + request.getMsg());
+
             ResponseEntity<String> response = restTemplate.postForEntity(mosiaApiUrl, entity, String.class);
+
+            System.out.println("[SERVICE] Resposta Mosia: HTTP " + response.getStatusCodeValue() +
+                    " | Body: " + response.getBody());
+
             if (!response.getStatusCode().is2xxSuccessful()) {
-                System.out.println("Falha ao enviar para Mosia: " + response.getStatusCode());
+                System.out.println("[SERVICE] Falha ao enviar para Mosia: " + response.getStatusCode());
                 return false;
             } else {
-                System.out.println("Mensagem enviada para Mosia com sucesso: " + response.getBody());
+                System.out.println("[SERVICE] Mensagem enviada com sucesso.");
                 return true;
             }
         } catch (Exception e) {
-            System.out.println("Erro ao enviar para Mosia: " + e.getMessage());
+            System.out.println("[SERVICE] Erro ao enviar para Mosia: " + e.getMessage());
             return false;
         }
     }
+
 }
