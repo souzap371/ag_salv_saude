@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   crm_mosia:
-    image: souzap371/agilecare:6.0.8
+    image: souzap371/agilecare:6.0.9
     environment:
       - SERVER_PORT=26810
       - DB_HOST=192.168.253.82
