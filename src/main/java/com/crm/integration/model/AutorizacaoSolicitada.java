@@ -7,30 +7,26 @@ import java.util.List;
 
 import lombok.Data;
 
+// @Entity
+// @Table(name = "autorizacao_solicitada", indexes = {
+//         @Index(name = "idx_autorizacao_protocolo", columnList = "protocolo", unique = true)
+// })
+
+
 @Entity
-@Table(name = "autorizacao_solicitada", indexes = {
-        @Index(name = "idx_autorizacao_protocolo", columnList = "protocolo", unique = true)
-})
+@Table(name = "autorizacao_solicitada" /* sem unique index por protocolo */)
+
+
 public class AutorizacaoSolicitada {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    // @Column(nullable = false, unique = true)
+    @Column(nullable = false) // removido unique = true
     private String protocolo;
-
-    // @Column(name = "id_operadora")
-    // private Integer idOperadora;
-
-    // private String mshash;
-    // private String tipo;
     private String nome;
-    // private String matricula;
-    // private String matriculaTitular;
-    // private String equipeAtendimentoCms;
-    // private String login;
-    // private String idMsUsuario;
     private String tipoGuia;
     private String idTipoGuia;
     private String label; // título do formulário
@@ -50,7 +46,9 @@ public class AutorizacaoSolicitada {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    @Column(name = "CHAVEUNICA", unique = true)
+    // @Column(name = "CHAVEUNICA", unique = true)
+    // private String chaveUnica;
+    @Column(name = "CHAVEUNICA") // removido unique = true
     private String chaveUnica;
 
     @Column(name = "NUMEROCONTRATO")
@@ -104,31 +102,6 @@ public class AutorizacaoSolicitada {
     public void setNumeroContrato(String numeroContrato) {
         this.numeroContrato = numeroContrato;
     }
-
-    // public Integer getIdOperadora() {
-    // return idOperadora;
-    // }
-
-    // public void setIdOperadora(Integer idOperadora) {
-    // this.idOperadora = idOperadora;
-    // }
-
-    // public String getMshash() {
-    // return mshash;
-    // }
-
-    // public void setMshash(String mshash) {
-    // this.mshash = mshash;
-    // }
-
-    // public String getTipo() {
-    // return tipo;
-    // }
-
-    // public void setTipo(String tipo) {
-    // this.tipo = tipo;
-    // }
-
     public String getNome() {
         return nome;
     }
@@ -136,46 +109,6 @@ public class AutorizacaoSolicitada {
     public void setNome(String nome) {
         this.nome = nome;
     }
-
-    // public String getMatricula() {
-    // return matricula;
-    // }
-
-    // public void setMatricula(String matricula) {
-    // this.matricula = matricula;
-    // }
-
-    // public String getMatriculaTitular() {
-    // return matriculaTitular;
-    // }
-
-    // public void setMatriculaTitular(String matriculaTitular) {
-    // this.matriculaTitular = matriculaTitular;
-    // }
-
-    // public String getEquipeAtendimentoCms() {
-    // return equipeAtendimentoCms;
-    // }
-
-    // public void setEquipeAtendimentoCms(String equipeAtendimentoCms) {
-    // this.equipeAtendimentoCms = equipeAtendimentoCms;
-    // }
-
-    // public String getLogin() {
-    // return login;
-    // }
-
-    // public void setLogin(String login) {
-    // this.login = login;
-    // }
-
-    // public String getIdMsUsuario() {
-    // return idMsUsuario;
-    // }
-
-    // public void setIdMsUsuario(String idMsUsuario) {
-    // this.idMsUsuario = idMsUsuario;
-    // }
 
     public String getTipoGuia() {
         return tipoGuia;

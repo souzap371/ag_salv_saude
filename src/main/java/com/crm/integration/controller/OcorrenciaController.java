@@ -5,11 +5,14 @@ import com.crm.integration.mapper.OcorrenciaMapper;
 import com.crm.integration.model.AlterarDatasRequest;
 import com.crm.integration.model.Anotacao;
 import com.crm.integration.model.AnotacaoRequest;
+import com.crm.integration.model.AutorizacaoSolicitada;
 import com.crm.integration.model.Ocorrencia;
 import com.crm.integration.model.OcorrenciaResponse;
 import com.crm.integration.model.StatusUpdateRequest;
 import com.crm.integration.model.UltimosProtocolosResponse;
+import com.crm.integration.repository.AutorizacaoRepository;
 import com.crm.integration.repository.OcorrenciaRepository;
+import com.crm.integration.service.MosiaIntegrationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -35,7 +38,7 @@ import java.time.ZoneId;
 @RequestMapping("/clientes/ocorrencias")
 public class OcorrenciaController {
 
-        @Value("${mosia.token}")
+        @Value("${mosia.token.ocorrencia}")
         private String mosiaToken;
 
         private static final Logger log = LoggerFactory.getLogger(OcorrenciaController.class);
@@ -119,7 +122,10 @@ public class OcorrenciaController {
                         Ocorrencia ocorrencia = OcorrenciaMapper.fromMosia(payload.getOcorrencia());
 
                         // Define a funcionalidade da ocorrência (vinda do payload)
-                        ocorrencia.setIdFuncionalidade(payload.getFuncionalidade().getId().intValue());
+                        // ocorrencia.setIdFuncionalidade(payload.getFuncionalidade().getId().intValue());
+                        if (payload.getFuncionalidade() != null && payload.getFuncionalidade().getId() != null) {
+    ocorrencia.setIdFuncionalidade(Integer.parseInt(payload.getFuncionalidade().getId()));
+}
 
                         // Define data de registro e atualização
                         ocorrencia.setDataRegistro(LocalDateTime.now());
@@ -185,9 +191,9 @@ public class OcorrenciaController {
                 }
 
                 // Buscar a ocorrência pelo protocolo informado
-                Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
-                if (ocorrenciaOpt.isPresent()) {
-                        Ocorrencia ocorrencia = ocorrenciaOpt.get();
+                List<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
+                if (ocorrenciaOpt.isEmpty()) {
+                        Ocorrencia ocorrencia = ocorrenciaOpt.get(0);
                         OcorrenciaResponse response = new OcorrenciaResponse(true,
                                         "Detalhes da ocorrência encontrados com sucesso.", 200,
                                         System.currentTimeMillis(), ocorrencia);
@@ -199,46 +205,106 @@ public class OcorrenciaController {
                 }
         }
 
+      
         // ATUALIZAR STATUS DA OCORRÊNCIA
-        @PutMapping("/{protocolo}/status")
-        public ResponseEntity<OcorrenciaResponse> atualizarStatus(
-                        @RequestHeader("Authorization") String authorization,
-                        @PathVariable("protocolo") String protocolo,
-                        @RequestBody StatusUpdateRequest request) {
+        // @PutMapping("/{protocolo}/status")
+        // public ResponseEntity<OcorrenciaResponse> atualizarStatus(
+        //                 @RequestHeader("Authorization") String authorization,
+        //                 @PathVariable("protocolo") String protocolo,
+        //                 @RequestBody StatusUpdateRequest request) {
 
-                if (!isValidToken(authorization)) {
-                        OcorrenciaResponse response = new OcorrenciaResponse(false, "Token de autorização inválido.",
-                                        401, System.currentTimeMillis(), null);
-                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-                }
+        //         if (!isValidToken(authorization)) {
+        //                 OcorrenciaResponse response = new OcorrenciaResponse(false, "Token de autorização inválido.",
+        //                                 401, System.currentTimeMillis(), null);
+        //                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        //         }
 
-                Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
-                if (!ocorrenciaOpt.isPresent()) {
-                        OcorrenciaResponse response = new OcorrenciaResponse(false, "Ocorrência não encontrada.", 404,
-                                        System.currentTimeMillis(), null);
-                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-                }
+        //         List<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
+        //         if (ocorrenciaOpt.isEmpty()) {
+        //                 OcorrenciaResponse response = new OcorrenciaResponse(false, "Ocorrência não encontrada.", 404,
+        //                                 System.currentTimeMillis(), null);
+        //                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        //         }
 
-                Ocorrencia ocorrencia = ocorrenciaOpt.get();
+        //         Ocorrencia ocorrencia = ocorrenciaOpt.get(0);
 
-                // Atualiza rascunho (se informado)
-                if (request.getRascunho() != null) {
-                        ocorrencia.setRascunho(request.getRascunho());
-                }
+        //         // Atualiza rascunho (se informado)
+        //         if (request.getRascunho() != null) {
+        //                 ocorrencia.setRascunho(request.getRascunho());
+        //         }
 
-                // Atualiza status (se informado)
-                if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-                        ocorrencia.setStatus(request.getStatus());
-                }
+        //         // Atualiza status (se informado)
+        //         if (request.getStatus() != null && !request.getStatus().isEmpty()) {
+        //                 ocorrencia.setStatus(request.getStatus());
+        //         }
 
-                ocorrencia.setDataAtualizacao(LocalDateTime.now());
-                Ocorrencia updatedOcorrencia = ocorrenciaRepository.save(ocorrencia);
+        //         ocorrencia.setDataAtualizacao(LocalDateTime.now());
+        //         Ocorrencia updatedOcorrencia = ocorrenciaRepository.save(ocorrencia);
 
-                OcorrenciaResponse response = new OcorrenciaResponse(true,
-                                "Status da ocorrência atualizado com sucesso.", 200,
-                                System.currentTimeMillis(), updatedOcorrencia);
-                return ResponseEntity.ok(response);
-        }
+        //         OcorrenciaResponse response = new OcorrenciaResponse(true,
+        //                         "Status da ocorrência atualizado com sucesso.", 200,
+        //                         System.currentTimeMillis(), updatedOcorrencia);
+        //         return ResponseEntity.ok(response);
+        // }
+
+
+         // ATUALIZAR STATUS DA OCORRÊNCIA
+      @Autowired
+private AutorizacaoRepository autorizacaoRepository;
+
+@Autowired
+private MosiaIntegrationService mosiaIntegrationService;
+
+@PutMapping("/{protocolo}/status")
+public ResponseEntity<OcorrenciaResponse> atualizarStatus(
+        @RequestHeader("Authorization") String authorization,
+        @PathVariable("protocolo") String protocolo,
+        @RequestBody StatusUpdateRequest request) {
+
+    // Validação do token
+    if (!isValidToken(authorization)) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new OcorrenciaResponse(false, "Token de autorização inválido.", 401, System.currentTimeMillis(), null));
+    }
+
+    // Busca o registro mais recente de autorização pelo protocolo
+    Optional<AutorizacaoSolicitada> autorizacaoOpt =
+            autorizacaoRepository.findTopByProtocoloOrderByCreatedAtDesc(protocolo);
+
+    if (autorizacaoOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new OcorrenciaResponse(false, "Autorização não encontrada para o protocolo informado.", 404, System.currentTimeMillis(), null));
+    }
+
+    AutorizacaoSolicitada autorizacao = autorizacaoOpt.get();
+
+    // Atualiza o status local
+    if (request.getStatus() != null && !request.getStatus().isEmpty()) {
+        autorizacao.setStatus(request.getStatus());
+    }
+
+    autorizacao.setUpdatedAt(java.time.OffsetDateTime.now());
+    autorizacaoRepository.save(autorizacao);
+
+    // Envia atualização para o MOSIA
+    boolean mosiaOk = mosiaIntegrationService.atualizarStatusNoMosia(protocolo, request.getStatus());
+
+    String msg = mosiaOk
+            ? "Status atualizado localmente e sincronizado com o MOSIA."
+            : "Status atualizado localmente, mas falha ao sincronizar com o MOSIA.";
+
+    return ResponseEntity.ok(
+    new OcorrenciaResponse(
+        true,
+        msg,
+        200,
+        System.currentTimeMillis(),
+        null // ou new OcorrenciaDTO(autorizacao) se tiver um DTO
+    )
+);
+}
+
+
 
         // CRIAR ANOTAÇÃO
         @PostMapping("/{protocolo}/anotacao")
@@ -253,14 +319,14 @@ public class OcorrenciaController {
                                                         System.currentTimeMillis(), null));
                 }
 
-                Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
-                if (!ocorrenciaOpt.isPresent()) {
+                List<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
+                if (ocorrenciaOpt.isEmpty()) {
                         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                                         .body(new OcorrenciaResponse(false, "Ocorrência não encontrada.", 404,
                                                         System.currentTimeMillis(), null));
                 }
 
-                Ocorrencia ocorrencia = ocorrenciaOpt.get();
+                Ocorrencia ocorrencia = ocorrenciaOpt.get(0);
 
                 // Criar nova anotação
                 Anotacao anotacao = new Anotacao();
@@ -298,8 +364,8 @@ public class OcorrenciaController {
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
                 }
 
-                Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
-                if (!ocorrenciaOpt.isPresent()) {
+                List<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
+                if (ocorrenciaOpt.isEmpty()) {
                         OcorrenciaResponse response = new OcorrenciaResponse(
                                         false,
                                         "Ocorrência não encontrada.",
@@ -309,7 +375,7 @@ public class OcorrenciaController {
                         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
                 }
 
-                Ocorrencia ocorrencia = ocorrenciaOpt.get();
+                Ocorrencia ocorrencia = ocorrenciaOpt.get(0);
 
                 if (Boolean.FALSE.equals(ocorrencia.getRascunho())) {
                         OcorrenciaResponse response = new OcorrenciaResponse(
@@ -383,8 +449,8 @@ public class OcorrenciaController {
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
                 }
 
-                Optional<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
-                if (!ocorrenciaOpt.isPresent()) {
+                List<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
+                if (ocorrenciaOpt.isEmpty()) {
                         OcorrenciaResponse response = new OcorrenciaResponse(
                                         false,
                                         "Ocorrência não encontrada.",
@@ -394,7 +460,7 @@ public class OcorrenciaController {
                         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
                 }
 
-                Ocorrencia ocorrencia = ocorrenciaOpt.get();
+                Ocorrencia ocorrencia = ocorrenciaOpt.get(0);
 
                 // Converter timestamp para LocalDateTime e atualizar os campos, se enviados
                 if (request.getDataRegistro() != null) {

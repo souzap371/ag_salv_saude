@@ -15,7 +15,8 @@ import java.util.Optional;
 
 @Repository
 public interface OcorrenciaRepository extends JpaRepository<Ocorrencia, Long> {
-    Optional<Ocorrencia> findByProtocolo(String protocolo);
+    // Optional<Ocorrencia> findByProtocolo(String protocolo);
+    List<Ocorrencia> findByProtocolo(String protocolo);
 
     // Busca os 10 últimos registros ordenados pela data de registro de forma
     // decrescente.
