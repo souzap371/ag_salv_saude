@@ -46,6 +46,13 @@ public class AutorizacaoSolicitada {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    @Column(name = "sincronizado_mosia")
+private String sincronizadoMosia = "S"; // padrão: já sincronizado
+
+@Column(name = "ultima_sincronizacao")
+private OffsetDateTime ultimaSincronizacao;
+
+
     // @Column(name = "CHAVEUNICA", unique = true)
     // private String chaveUnica;
     @Column(name = "CHAVEUNICA") // removido unique = true
@@ -157,6 +164,23 @@ public class AutorizacaoSolicitada {
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public String getSincronizadoMosia() {
+    return sincronizadoMosia;
+}
+
+public void setSincronizadoMosia(String sincronizadoMosia) {
+    this.sincronizadoMosia = sincronizadoMosia;
+}
+
+public OffsetDateTime getUltimaSincronizacao() {
+    return ultimaSincronizacao;
+}
+
+public void setUltimaSincronizacao(OffsetDateTime ultimaSincronizacao) {
+    this.ultimaSincronizacao = ultimaSincronizacao;
+}
+
 
     public OffsetDateTime getUpdatedAt() {
         return updatedAt;

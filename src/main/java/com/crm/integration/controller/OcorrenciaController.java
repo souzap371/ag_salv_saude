@@ -211,48 +211,6 @@ public class OcorrenciaController {
                 }
         }
 
-      
-        // ATUALIZAR STATUS DA OCORRÊNCIA
-        // @PutMapping("/{protocolo}/status")
-        // public ResponseEntity<OcorrenciaResponse> atualizarStatus(
-        //                 @RequestHeader("Authorization") String authorization,
-        //                 @PathVariable("protocolo") String protocolo,
-        //                 @RequestBody StatusUpdateRequest request) {
-
-        //         if (!isValidToken(authorization)) {
-        //                 OcorrenciaResponse response = new OcorrenciaResponse(false, "Token de autorização inválido.",
-        //                                 401, System.currentTimeMillis(), null);
-        //                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        //         }
-
-        //         List<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
-        //         if (ocorrenciaOpt.isEmpty()) {
-        //                 OcorrenciaResponse response = new OcorrenciaResponse(false, "Ocorrência não encontrada.", 404,
-        //                                 System.currentTimeMillis(), null);
-        //                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        //         }
-
-        //         Ocorrencia ocorrencia = ocorrenciaOpt.get(0);
-
-        //         // Atualiza rascunho (se informado)
-        //         if (request.getRascunho() != null) {
-        //                 ocorrencia.setRascunho(request.getRascunho());
-        //         }
-
-        //         // Atualiza status (se informado)
-        //         if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-        //                 ocorrencia.setStatus(request.getStatus());
-        //         }
-
-        //         ocorrencia.setDataAtualizacao(LocalDateTime.now());
-        //         Ocorrencia updatedOcorrencia = ocorrenciaRepository.save(ocorrencia);
-
-        //         OcorrenciaResponse response = new OcorrenciaResponse(true,
-        //                         "Status da ocorrência atualizado com sucesso.", 200,
-        //                         System.currentTimeMillis(), updatedOcorrencia);
-        //         return ResponseEntity.ok(response);
-        // }
-
 
          // ATUALIZAR STATUS DA OCORRÊNCIA
       @Autowired
@@ -261,39 +219,44 @@ private AutorizacaoRepository autorizacaoRepository;
 @Autowired
 private MosiaIntegrationService mosiaIntegrationService;
 
-// @Transactional
 
+// @Transactional
 // @PutMapping("/{protocolo}/status")
 // public ResponseEntity<OcorrenciaResponse> atualizarStatus(
 //         @RequestHeader("Authorization") String authorization,
 //         @PathVariable("protocolo") String protocolo,
 //         @RequestBody MosiaStatusUpdateRequest request) {
 
-//     // 1) valida token do seu sistema (isValidToken)
 //     if (!isValidToken(authorization)) {
 //         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//             .body(new OcorrenciaResponse(false, "Token de autorização inválido.", 401, System.currentTimeMillis(), null));
+//                 .body(new OcorrenciaResponse(false, "Token de autorização inválido.", 401, System.currentTimeMillis(), null));
 //     }
 
-//     // 2) atualizar local (exemplo mínimo - adapte para sua entidade Autorizacao)
 //     var autorizacaoOpt = autorizacaoRepository.findTopByProtocoloOrderByCreatedAtDesc(protocolo);
 //     if (autorizacaoOpt.isEmpty()) {
 //         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-//             .body(new OcorrenciaResponse(false, "Autorização não encontrada.", 404, System.currentTimeMillis(), null));
+//                 .body(new OcorrenciaResponse(false, "Autorização não encontrada.", 404, System.currentTimeMillis(), null));
 //     }
-//     var autorizacao = autorizacaoOpt.get();
-//     // Se você mapear status local para o idNovoStatus, faça aqui (ex.: autorizacao.setStatus(...))
-//     autorizacao.setUpdatedAt(java.time.OffsetDateTime.now());
-//     autorizacaoRepository.save(autorizacao);
 
-//     // 3) chama MOSIA passando o request (que vem do Postman) — inclui chaveUnicaSolicitante também
+//     var autorizacao = autorizacaoOpt.get();
+
+//     // 🔹 Traduz o código do status para o nome conforme MOSIA
+//     String nomeStatus = MosiaStatusEnum.getNomePorCodigo(request.getIdNovoStatus());
+
+//     // 🔹 Atualiza localmente
+//     autorizacao.setStatus(nomeStatus); // <--- salva o nome, ex: "Atendimento Finalizado"
+//     autorizacao.setUpdatedAt(java.time.OffsetDateTime.now());
+//     autorizacaoRepository.saveAndFlush(autorizacao);
+
+//     // 🔹 Atualiza também no MOSIA
 //     boolean mosiaOk = mosiaIntegrationService.atualizarStatusNoMosia(protocolo, request);
 
 //     String mensagem = mosiaOk
-//         ? "Status atualizado localmente e sincronizado com o MOSIA."
-//         : "Status atualizado localmente, mas falha ao sincronizar com o MOSIA.";
+//             ? "Status atualizado localmente e sincronizado com o MOSIA."
+//             : "Status atualizado localmente, mas falha ao sincronizar com o MOSIA.";
 
 //     int code = mosiaOk ? 200 : 207;
+
 //     return ResponseEntity.status(code)
 //             .body(new OcorrenciaResponse(true, mensagem, code, System.currentTimeMillis(), null));
 // }
@@ -305,11 +268,13 @@ public ResponseEntity<OcorrenciaResponse> atualizarStatus(
         @PathVariable("protocolo") String protocolo,
         @RequestBody MosiaStatusUpdateRequest request) {
 
+    // 🔹 Valida o token
     if (!isValidToken(authorization)) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new OcorrenciaResponse(false, "Token de autorização inválido.", 401, System.currentTimeMillis(), null));
     }
 
+    // 🔹 Busca a autorização mais recente pelo protocolo
     var autorizacaoOpt = autorizacaoRepository.findTopByProtocoloOrderByCreatedAtDesc(protocolo);
     if (autorizacaoOpt.isEmpty()) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -322,16 +287,20 @@ public ResponseEntity<OcorrenciaResponse> atualizarStatus(
     String nomeStatus = MosiaStatusEnum.getNomePorCodigo(request.getIdNovoStatus());
 
     // 🔹 Atualiza localmente
-    autorizacao.setStatus(nomeStatus); // <--- salva o nome, ex: "Atendimento Finalizado"
+    autorizacao.setStatus(nomeStatus); // ex: "Atendimento Finalizado"
     autorizacao.setUpdatedAt(java.time.OffsetDateTime.now());
     autorizacaoRepository.saveAndFlush(autorizacao);
 
-    // 🔹 Atualiza também no MOSIA
-    boolean mosiaOk = mosiaIntegrationService.atualizarStatusNoMosia(protocolo, request);
+    // 🔹 Pega a chave única do registro (para enviar ao MOSIA)
+    String chaveUnica = autorizacao.getChaveUnica();
 
+    // 🔹 Atualiza também no MOSIA
+    boolean mosiaOk = mosiaIntegrationService.atualizarStatusNoMosia(protocolo, nomeStatus, chaveUnica);
+
+    // 🔹 Monta mensagem e resposta
     String mensagem = mosiaOk
             ? "Status atualizado localmente e sincronizado com o MOSIA."
-            : "Status atualizado localmente, mas falha ao sincronizar com o MOSIA.";
+            : "Status atualizado localmente, mas houve falha ao sincronizar com o MOSIA.";
 
     int code = mosiaOk ? 200 : 207;
 
@@ -340,39 +309,8 @@ public ResponseEntity<OcorrenciaResponse> atualizarStatus(
 }
 
 
+
 // // CALLBACK MOSIA
-// @PostMapping("/status/callback")
-// public ResponseEntity<Void> receberCallbackStatus(@RequestBody MosiaStatusUpdateRequest request) {
-//     try {
-
-
-//         //LOG DO PAYLOAD
-//          System.out.println(" Payload recebido do MOSIA:");
-//         System.out.println(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(request));
-
-//         // Localiza a ocorrência no seu banco
-//         // var autorizacaoOpt = autorizacaoRepository.findTopByProtocoloOrderByCreatedAtDesc(request.getChaveUnicaSolicitante());
-//         var autorizacaoOpt = autorizacaoRepository.findTopByProtocoloOrderByCreatedAtDesc(request.getProtocolo());
-
-//         if (autorizacaoOpt.isPresent()) {
-//             var autorizacao = autorizacaoOpt.get();
-
-//             // Traduz o código para nome (usando seu enum)
-//             String nomeStatus = MosiaStatusEnum.getNomePorCodigo(request.getIdNovoStatus());
-
-//             autorizacao.setStatus(nomeStatus);
-//             autorizacao.setUpdatedAt(java.time.OffsetDateTime.now());
-//             autorizacaoRepository.saveAndFlush(autorizacao);
-//         }
-
-//         return ResponseEntity.ok().build();
-
-//     } catch (Exception e) {
-//         e.printStackTrace();
-//         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-//     }
-// }
-
 @PostMapping("/status/callback")
 public ResponseEntity<Void> receberCallbackStatus(@RequestBody MosiaCallbackRequest callback) {
     try {
