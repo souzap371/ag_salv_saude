@@ -1,6 +1,5 @@
 package com.crm.integration.service;
 
-
 import com.crm.integration.model.MosiaStatusUpdateRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -18,22 +17,32 @@ public class MosiaIntegrationService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public boolean atualizarStatusNoMosia(String protocolo, String novoStatus) {
+    /**
+     * Envia o PUT para o MOSIA usando exatamente o objeto recebido do cliente (Postman/Controller).
+     */
+    public boolean atualizarStatusNoMosia(String protocolo, MosiaStatusUpdateRequest request) {
         try {
-            String url = mosiaOcorrenciaUrl + "/atualizar-status";
-
-            MosiaStatusUpdateRequest body = new MosiaStatusUpdateRequest(protocolo, novoStatus);
+            String url = mosiaOcorrenciaUrl + "/" + protocolo + "/status";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            // usa o token configurado em application.properties (ex: "Bearer xxxxx")
             headers.set("Authorization", mosiaToken);
 
-            HttpEntity<MosiaStatusUpdateRequest> entity = new HttpEntity<>(body, headers);
+            HttpEntity<MosiaStatusUpdateRequest> entity = new HttpEntity<>(request, headers);
 
-            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.PUT,
+                    entity,
+                    String.class
+            );
 
+            System.out.println("MOSIA -> " + response.getStatusCode() + " : " + response.getBody());
             return response.getStatusCode().is2xxSuccessful();
+
         } catch (Exception e) {
+            System.err.println("Erro ao chamar MOSIA: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

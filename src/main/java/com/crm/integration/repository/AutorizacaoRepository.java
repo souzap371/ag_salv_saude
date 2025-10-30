@@ -16,4 +16,7 @@ public interface AutorizacaoRepository extends JpaRepository<AutorizacaoSolicita
 
     // Retorna todas as autorizações com o mesmo protocolo
     List<AutorizacaoSolicitada> findByProtocolo(String protocolo);
+
+    Optional<AutorizacaoSolicitada> findTopByChaveUnicaOrderByCreatedAtDesc(String chaveUnica);
+
 }
