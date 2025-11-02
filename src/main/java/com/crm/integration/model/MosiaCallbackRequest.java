@@ -64,15 +64,32 @@ public class MosiaCallbackRequest {
         public void setNome(String nome) { this.nome = nome; }
     }
 
+    // @JsonIgnoreProperties(ignoreUnknown = true)
+    // public static class Status {
+    //     private String id;
+    //     private String descricao;
+
+    //     public String getId() { return id; }
+    //     public void setId(String id) { this.id = id; }
+
+    //     public String getDescricao() { return descricao; }
+    //     public void setDescricao(String descricao) { this.descricao = descricao; }
+    // }
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Status {
-        private Integer id;
-        private String descricao;
+public static class Status {
+    private Object id;
+    private String descricao;
 
-        public Integer getId() { return id; }
-        public void setId(Integer id) { this.id = id; }
-
-        public String getDescricao() { return descricao; }
-        public void setDescricao(String descricao) { this.descricao = descricao; }
+    public String getId() {
+        return id != null ? String.valueOf(id) : null;
     }
+
+    public void setId(Object id) {
+        this.id = id;
+    }
+
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
+}
+
 }

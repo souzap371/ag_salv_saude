@@ -219,48 +219,6 @@ private AutorizacaoRepository autorizacaoRepository;
 @Autowired
 private MosiaIntegrationService mosiaIntegrationService;
 
-
-// @Transactional
-// @PutMapping("/{protocolo}/status")
-// public ResponseEntity<OcorrenciaResponse> atualizarStatus(
-//         @RequestHeader("Authorization") String authorization,
-//         @PathVariable("protocolo") String protocolo,
-//         @RequestBody MosiaStatusUpdateRequest request) {
-
-//     if (!isValidToken(authorization)) {
-//         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//                 .body(new OcorrenciaResponse(false, "Token de autorização inválido.", 401, System.currentTimeMillis(), null));
-//     }
-
-//     var autorizacaoOpt = autorizacaoRepository.findTopByProtocoloOrderByCreatedAtDesc(protocolo);
-//     if (autorizacaoOpt.isEmpty()) {
-//         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-//                 .body(new OcorrenciaResponse(false, "Autorização não encontrada.", 404, System.currentTimeMillis(), null));
-//     }
-
-//     var autorizacao = autorizacaoOpt.get();
-
-//     // 🔹 Traduz o código do status para o nome conforme MOSIA
-//     String nomeStatus = MosiaStatusEnum.getNomePorCodigo(request.getIdNovoStatus());
-
-//     // 🔹 Atualiza localmente
-//     autorizacao.setStatus(nomeStatus); // <--- salva o nome, ex: "Atendimento Finalizado"
-//     autorizacao.setUpdatedAt(java.time.OffsetDateTime.now());
-//     autorizacaoRepository.saveAndFlush(autorizacao);
-
-//     // 🔹 Atualiza também no MOSIA
-//     boolean mosiaOk = mosiaIntegrationService.atualizarStatusNoMosia(protocolo, request);
-
-//     String mensagem = mosiaOk
-//             ? "Status atualizado localmente e sincronizado com o MOSIA."
-//             : "Status atualizado localmente, mas falha ao sincronizar com o MOSIA.";
-
-//     int code = mosiaOk ? 200 : 207;
-
-//     return ResponseEntity.status(code)
-//             .body(new OcorrenciaResponse(true, mensagem, code, System.currentTimeMillis(), null));
-// }
-
 @Transactional
 @PutMapping("/{protocolo}/status")
 public ResponseEntity<OcorrenciaResponse> atualizarStatus(
@@ -310,15 +268,62 @@ public ResponseEntity<OcorrenciaResponse> atualizarStatus(
 
 
 
-// // CALLBACK MOSIA
+// // // CALLBACK MOSIA
+// @PostMapping("/status/callback")
+// public ResponseEntity<Void> receberCallbackStatus(@RequestBody MosiaCallbackRequest callback) {
+//     try {
+//         // 🔹 Logar o conteúdo recebido
+//         System.out.println("📩 Callback recebido do MOSIA:");
+//         System.out.println(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(callback));
+
+//         // Extrair dados principais
+//         var ocorrencia = callback.getOcorrencia();
+//         if (ocorrencia == null || ocorrencia.getAtendimento() == null) {
+//             System.out.println("⚠️ Callback sem dados de ocorrência/atendimento válidos.");
+//             return ResponseEntity.ok().build();
+//         }
+
+//         String protocolo = ocorrencia.getProtocolo();
+//         String chaveUnica = ocorrencia.getSolicitante() != null ? ocorrencia.getSolicitante().getChaveUnica() : null;
+//         Integer idStatus = ocorrencia.getAtendimento().getStatus().getId();
+//         String nomeStatus = ocorrencia.getAtendimento().getStatus().getDescricao();
+
+//         System.out.printf("🔎 Atualizando protocolo=%s | chaveUnica=%s | status=%s (%d)%n",
+//                 protocolo, chaveUnica, nomeStatus, idStatus);
+
+//         // Buscar no banco e atualizar
+//         var autorizacaoOpt = autorizacaoRepository.findTopByProtocoloOrderByCreatedAtDesc(protocolo);
+//         if (autorizacaoOpt.isPresent()) {
+//     var autorizacao = autorizacaoOpt.get();
+
+//     autorizacao.setStatus(nomeStatus);
+//     autorizacao.setStatusId(String.valueOf(idStatus)); // ✅ agora grava o ID corretamente
+//     autorizacao.setUpdatedAt(java.time.OffsetDateTime.now());
+
+//     autorizacaoRepository.saveAndFlush(autorizacao);
+//     System.out.println("✅ Atualizado com sucesso no banco local!");
+//     System.out.printf("🧩 Gravado no banco: status=%s | status_id=%s%n", 
+//     autorizacao.getStatus(), autorizacao.getStatusId());
+// }
+
+//         else {
+//             System.out.println("⚠️ Nenhuma autorização encontrada para o protocolo: " + protocolo);
+//         }
+
+//         return ResponseEntity.ok().build();
+
+//     } catch (Exception e) {
+//         e.printStackTrace();
+//         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+//     }
+// }
+
 @PostMapping("/status/callback")
 public ResponseEntity<Void> receberCallbackStatus(@RequestBody MosiaCallbackRequest callback) {
     try {
-        // 🔹 Logar o conteúdo recebido
         System.out.println("📩 Callback recebido do MOSIA:");
         System.out.println(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(callback));
 
-        // Extrair dados principais
         var ocorrencia = callback.getOcorrencia();
         if (ocorrencia == null || ocorrencia.getAtendimento() == null) {
             System.out.println("⚠️ Callback sem dados de ocorrência/atendimento válidos.");
@@ -327,23 +332,43 @@ public ResponseEntity<Void> receberCallbackStatus(@RequestBody MosiaCallbackRequ
 
         String protocolo = ocorrencia.getProtocolo();
         String chaveUnica = ocorrencia.getSolicitante() != null ? ocorrencia.getSolicitante().getChaveUnica() : null;
-        Integer idStatus = ocorrencia.getAtendimento().getStatus().getId();
+        String idStatus = ocorrencia.getAtendimento().getStatus().getId();
         String nomeStatus = ocorrencia.getAtendimento().getStatus().getDescricao();
 
-        System.out.printf("🔎 Atualizando protocolo=%s | chaveUnica=%s | status=%s (%d)%n",
-                protocolo, chaveUnica, nomeStatus, idStatus);
+        System.out.printf("🔎 Atualizando protocolo=%s | chaveUnica=%s | status=%s (%s)%n",
+        protocolo, chaveUnica, nomeStatus, idStatus);
 
-        // Buscar no banco e atualizar
         var autorizacaoOpt = autorizacaoRepository.findTopByProtocoloOrderByCreatedAtDesc(protocolo);
+
         if (autorizacaoOpt.isPresent()) {
+            // 🔹 Atualiza registro existente
             var autorizacao = autorizacaoOpt.get();
             autorizacao.setStatus(nomeStatus);
+            autorizacao.setStatusId(idStatus);
             autorizacao.setUpdatedAt(java.time.OffsetDateTime.now());
             autorizacaoRepository.saveAndFlush(autorizacao);
 
             System.out.println("✅ Atualizado com sucesso no banco local!");
+            System.out.printf("🧩 Gravado no banco: status=%s | status_id=%s%n",
+                    autorizacao.getStatus(), autorizacao.getStatusId());
         } else {
-            System.out.println("⚠️ Nenhuma autorização encontrada para o protocolo: " + protocolo);
+            // 🔹 Cria um novo registro se não existir
+            var nova = new AutorizacaoSolicitada();
+            nova.setProtocolo(protocolo);
+            nova.setChaveUnica(chaveUnica);
+            nova.setStatus(nomeStatus);
+            nova.setStatusId(String.valueOf(idStatus));
+            nova.setCreatedAt(java.time.OffsetDateTime.now());
+            nova.setUpdatedAt(java.time.OffsetDateTime.now());
+            nova.setSincronizadoMosia("S");
+
+            autorizacaoRepository.saveAndFlush(nova);
+
+            System.out.println("🆕 Novo registro criado com sucesso!");
+            System.out.printf("🔎 Atualizando protocolo=%s | chaveUnica=%s | status=%s (%s)%n",
+        protocolo, chaveUnica, nomeStatus, idStatus);
+
+
         }
 
         return ResponseEntity.ok().build();
@@ -353,6 +378,7 @@ public ResponseEntity<Void> receberCallbackStatus(@RequestBody MosiaCallbackRequ
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 }
+
 
 
 
