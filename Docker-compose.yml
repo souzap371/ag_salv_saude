@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+  crm_mosia:
+    image: souzap371/agilecare:12.0.6
+    environment:
+      - SERVER_PORT=26810
+      - DB_HOST=192.168.253.82
+      - DB_PORT=1521
+      - DB_SERVICE=solus19t.subnetcassedbpr.vcncassedb2.oraclevcn.com
+      - DB_USER=appmobile
+      - DB_PASSWORD="mobile#1022"
+    ports:
+      - "26810:26810"
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - solus-prd
+
+networks:
+  solus-prd:
+    external: true
+
+

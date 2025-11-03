@@ -33,18 +33,47 @@ public class AutorizacaoController {
             return ResponseEntity.status(500).body("Erro ao processar callback");
         }
     }
-
-    @GetMapping("/{protocolo}")
-    public ResponseEntity<AutorizacaoSolicitada> getByProtocolo(@PathVariable String protocolo) {
-        return autorizacaoService.findByProtocolo(protocolo)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
     @PostMapping("/{protocolo}/status")
-    public ResponseEntity<String> updateStatus(@PathVariable String protocolo,
-            @RequestParam String status) {
-        autorizacaoService.updateStatusLocal(protocolo, status);
-        return ResponseEntity.ok("Status atualizado localmente");
+public ResponseEntity<String> updateStatus(@PathVariable String protocolo,
+        @RequestParam String status) {
+    AutorizacaoSolicitada novo = autorizacaoService.registrarNovoStatus(protocolo, status);
+    return ResponseEntity.ok("Novo status registrado e Mosia notificado. ID: " + novo.getId());
+}
+
+@PostMapping("/callback/status")
+public ResponseEntity<String> receiveStatusCallback(@RequestBody String rawBody) {
+    System.out.println("Callback de STATUS recebido: " + rawBody);
+    try {
+        // Extrair protocolo e status do JSON recebido
+        String protocolo = extrairCampo(rawBody, "protocolo");
+        String status = extrairCampo(rawBody, "status");
+
+        if (protocolo == null || status == null) {
+            return ResponseEntity.badRequest().body("Campos 'protocolo' e 'status' são obrigatórios");
+        }
+
+        // Atualiza o status e notifica Mosia
+        autorizacaoService.registrarNovoStatus(protocolo, status);
+
+        return ResponseEntity.ok("Status atualizado para " + status + " no protocolo " + protocolo);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(500).body("Erro ao processar callback de status");
     }
+}
+
+/**
+ * Método auxiliar simples para extrair campos de JSON sem precisar criar DTO.
+ */
+private String extrairCampo(String json, String campo) {
+    try {
+        com.fasterxml.jackson.databind.JsonNode node =
+                new com.fasterxml.jackson.databind.ObjectMapper().readTree(json);
+        return node.has(campo) ? node.get(campo).asText() : null;
+    } catch (Exception e) {
+        return null;
+    }
+}
+
+
 }
