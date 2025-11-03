@@ -2,6 +2,8 @@ package com.crm.integration.service;
 
 import com.crm.integration.model.MosiaStatusUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -9,6 +11,8 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 public class MosiaIntegrationService {
+
+    private static final Logger log = LoggerFactory.getLogger(MosiaIntegrationService.class);
 
     @Value("${mosia.api.ocorrencia}")
     private String mosiaOcorrenciaUrl;
@@ -20,7 +24,7 @@ public class MosiaIntegrationService {
     private final ObjectMapper mapper = new ObjectMapper();
 
     /**
-     * Atualiza o status da ocorrência no MOSIA
+     * Atualiza o status da ocorrência no MOSIA.
      * Aceita tanto o ID numérico quanto o nome do status.
      */
     public boolean atualizarStatusNoMosia(String protocolo, String statusValor, String chaveUnica) {
@@ -31,12 +35,15 @@ public class MosiaIntegrationService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", mosiaToken);
 
-            // 🔹 Tenta converter o status para número; se não conseguir, faz o mapeamento por nome
-            Integer idStatus;
-            try {
-                idStatus = Integer.valueOf(statusValor);
-            } catch (NumberFormatException e) {
-                idStatus = mapearCodigoPorNome(statusValor);
+            // tenta converter o status para número; se não conseguir, faz o mapeamento por
+            // nome
+            Integer idStatus = null;
+            if (statusValor != null) {
+                try {
+                    idStatus = Integer.valueOf(statusValor);
+                } catch (NumberFormatException e) {
+                    idStatus = mapearCodigoPorNome(statusValor);
+                }
             }
 
             MosiaStatusUpdateRequest request = new MosiaStatusUpdateRequest();
@@ -46,30 +53,28 @@ public class MosiaIntegrationService {
             request.setChaveUnicaSolicitante(chaveUnica);
             request.setManterAtribuicao(true);
 
-            // 🔍 Log detalhado do JSON que será enviado
             String jsonEnvio = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
-            System.out.println("📤 Enviando atualização para MOSIA:");
-            System.out.println(jsonEnvio);
+            log.info("Enviando atualização para MOSIA: url={} payload={}", url, jsonEnvio);
 
             HttpEntity<MosiaStatusUpdateRequest> entity = new HttpEntity<>(request, headers);
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
 
-            System.out.println("✅ Retorno MOSIA -> " + response.getStatusCode() + " : " + response.getBody());
+            log.info("Retorno MOSIA -> {} : {}", response.getStatusCode(), response.getBody());
             return response.getStatusCode().is2xxSuccessful();
 
         } catch (Exception e) {
-            System.err.println("❌ Erro ao enviar atualização para MOSIA: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Erro ao enviar atualização para MOSIA: {}", e.getMessage(), e);
             return false;
         }
     }
 
     /**
      * Faz o mapeamento de nome do status para o ID correspondente no MOSIA.
+     * (método privado para uso interno)
      */
     private Integer mapearCodigoPorNome(String nomeStatus) {
-        if (nomeStatus == null) return null;
-
+        if (nomeStatus == null)
+            return null;
         switch (nomeStatus.trim()) {
             case "Enviado":
                 return 4112;
@@ -80,8 +85,16 @@ public class MosiaIntegrationService {
             case "Cancelado":
                 return 4122;
             default:
-                System.out.println("⚠️ Status não mapeado: " + nomeStatus);
+                log.warn("Status MOSIA não mapeado: {}", nomeStatus);
                 return null;
         }
+    }
+
+    /**
+     * Método público que expõe o mapeamento nome->id para outros serviços.
+     * Útil para preencher statusId antes de persistir.
+     */
+    public Integer mapearCodigoPorNomePublic(String nomeStatus) {
+        return mapearCodigoPorNome(nomeStatus);
     }
 }

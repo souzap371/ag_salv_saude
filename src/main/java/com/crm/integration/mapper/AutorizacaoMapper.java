@@ -57,8 +57,17 @@ public class AutorizacaoMapper {
 
         // Status inicial
         JsonNode statusNode = ocorrencia.path("atendimento").path("status");
-        if (!statusNode.isMissingNode()) {
-            autorizacao.setStatus(statusNode.path("descricao").asText());
+        if (!statusNode.isMissingNode() && !statusNode.isNull()) {
+            // descreve (texto)
+            autorizacao.setStatus(statusNode.path("descricao").asText(null));
+
+            // id pode ser número ou string -> pegar como texto seguro
+            JsonNode idNode = statusNode.path("id");
+            if (!idNode.isMissingNode() && !idNode.isNull()) {
+                autorizacao.setStatusId(idNode.asText()); // ex: "4112"
+            } else {
+                autorizacao.setStatusId(null);
+            }
         }
 
         // Arquivos
