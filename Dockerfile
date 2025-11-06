@@ -1,5 +1,7 @@
 # Usa uma imagem do Java JDK
-FROM openjdk:17-jdk-slim
+# FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk
+
 
 # Define diretório de trabalho no container
 WORKDIR /app
