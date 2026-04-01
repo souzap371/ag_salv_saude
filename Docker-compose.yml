@@ -1,0 +1,29 @@
+version: '3.7'
+
+services:
+  crm_mosia:
+    image: souzap371/ag_scm:1.0.6
+    environment:
+      - SERVER_PORT=443
+      - DB_HOST=172.16.0.133
+      - DB_PORT=1521
+      - DB_SERVICE=senior
+      - DB_USER=appmobile
+      - DB_PASSWORD="mobile#1022"
+    ports:
+      - "443:443"
+    volumes:
+      - /home/omnilink/certificado/2025certificado39405:/certificado  
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - solus-prd
+
+networks:
+  solus-prd:
+   
+
+
