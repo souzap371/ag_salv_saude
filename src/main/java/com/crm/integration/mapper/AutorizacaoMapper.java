@@ -70,35 +70,39 @@ public class AutorizacaoMapper {
             }
         }
 
-        // Arquivos
-        List<AutorizacaoArquivo> arquivos = new ArrayList<>();
-        JsonNode imagens = itens.path("imagem-da-guia-solicitacao");
-        if (imagens.isArray()) {
-            for (JsonNode img : imagens) {
-                AutorizacaoArquivo arquivo = new AutorizacaoArquivo();
-                arquivo.setNomeOriginal(img.path("name").asText());
-                arquivo.setUrlOriginal(img.path("url").asText());
-                arquivo.setCaminhoLocal(null); // preencha se você salvar localmente
-                arquivo.setBaixadoEm(OffsetDateTime.now());
-                arquivo.setAutorizacao(autorizacao); // importante para o relacionamento
-                // Baixa o arquivo remoto e converte para byte[]
-                try (InputStream in = new URL(img.path("url").asText()).openStream();
-                        ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
 
-                    byte[] data = new byte[1024];
-                    int nRead;
-                    while ((nRead = in.read(data, 0, data.length)) != -1) {
-                        buffer.write(data, 0, nRead);
+        List<AutorizacaoArquivo> arquivos = new ArrayList<>();
+
+JsonNode formularios = solicitacao.path("formularios");
+
+if (formularios.isArray()) {
+    for (JsonNode form : formularios) {
+
+        JsonNode itensArray = form.path("itens");
+
+        if (itensArray.isArray()) {
+            for (JsonNode item : itensArray) {
+
+                JsonNode imagens = item.path("arquivo");
+
+                if (imagens.isArray()) {
+                    for (JsonNode img : imagens) {
+
+                        AutorizacaoArquivo arquivo = new AutorizacaoArquivo();
+                        arquivo.setNomeOriginal(img.path("name").asText());
+                        arquivo.setUrlOriginal(img.path("url").asText());
+                       
+                        arquivo.setAutorizacao(autorizacao);
+
+                        arquivos.add(arquivo);
                     }
-                    buffer.flush();
-                    arquivo.setCimaImagem(buffer.toByteArray());
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
-                arquivos.add(arquivo);
             }
         }
-        autorizacao.setArquivos(arquivos);
+    }
+}
+
+autorizacao.setArquivos(arquivos);
 
         return autorizacao;
     }

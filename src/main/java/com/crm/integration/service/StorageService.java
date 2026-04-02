@@ -36,7 +36,7 @@ public class StorageService {
                 // Salva no disco
                 Files.write(Paths.get(localPath), bytes);
 
-                return localPath;
+                return "/uploads/autorizacoes/" + fileName;
             } else {
                 throw new RuntimeException("Falha ao baixar arquivo: " + response.getStatusCode());
             }

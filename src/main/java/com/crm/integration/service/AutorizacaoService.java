@@ -45,7 +45,8 @@ public class AutorizacaoService {
             for (AutorizacaoArquivo ar : entity.getArquivos()) {
                 if (ar.getUrlOriginal() != null && ar.getCaminhoLocal() == null) {
                     try {
-                        String localPath = storageService.downloadAndSave(ar.getUrlOriginal(), "uploads/autorizacoes");
+                        String folder = "/uploads/autorizacoes";
+                        String localPath = storageService.downloadAndSave(ar.getUrlOriginal(), folder);
                         ar.setCaminhoLocal(localPath);
                         ar.setBaixadoEm(OffsetDateTime.now());
                         ar.setAutorizacao(entity);
