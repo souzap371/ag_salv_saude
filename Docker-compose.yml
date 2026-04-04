@@ -13,7 +13,8 @@ services:
     ports:
       - "443:443"
     volumes:
-      - /home/omnilink/certificado/2025certificado39405:/certificado  
+      - /home/omnilink/certificado/2025certificado39405:/certificado
+      - /mnt/scm_guias:/mnt/scm_guias
     deploy:
       mode: replicated
       replicas: 1

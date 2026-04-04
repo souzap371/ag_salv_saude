@@ -1,5 +1,6 @@
 package com.crm.integration.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -7,6 +8,8 @@ import org.springframework.web.client.RestTemplate;
 import java.nio.file.*;
 import java.util.UUID;
 import java.net.URI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 @Service
@@ -14,7 +17,11 @@ public class StorageService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public String downloadAndSave(String fileUrl, String folder) {
+    @Value("${storage.path}")
+    private String basePath;
+    private static final Logger log = LoggerFactory.getLogger(StorageService.class);
+
+    public String downloadAndSave(String fileUrl) {
         try {
             ResponseEntity<byte[]> response = restTemplate.exchange(
                     URI.create(fileUrl),
@@ -25,18 +32,22 @@ public class StorageService {
             if (response.getStatusCode().is2xxSuccessful()) {
                 byte[] bytes = response.getBody();
 
-                // Gera nome único
                 String fileName = UUID.randomUUID().toString() + "-"
                         + Paths.get(new URI(fileUrl).getPath()).getFileName();
-                String localPath = folder + "/" + fileName;
 
-                // Cria diretório se não existir
-                Files.createDirectories(Paths.get(folder));
+                // CAMINHO MONTADO NO LINUX
+                // String basePath = "/mnt/scm_guias";
 
-                // Salva no disco
-                Files.write(Paths.get(localPath), bytes);
+                Path fullPath = Paths.get(basePath, fileName);
 
-                return "/uploads/autorizacoes/" + fileName;
+                Files.createDirectories(fullPath.getParent());
+                Files.write(fullPath, bytes);
+
+                // LOG
+                log.info("[STORAGE] Arquivo salvo com sucesso | path={} | origem={}", fullPath, fileUrl);
+
+                return fullPath.toString();
+
             } else {
                 throw new RuntimeException("Falha ao baixar arquivo: " + response.getStatusCode());
             }
