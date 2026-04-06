@@ -22,37 +22,78 @@ public class StorageService {
     private static final Logger log = LoggerFactory.getLogger(StorageService.class);
 
     public String downloadAndSave(String fileUrl) {
-        try {
-            ResponseEntity<byte[]> response = restTemplate.exchange(
-                    URI.create(fileUrl),
-                    HttpMethod.GET,
-                    null,
-                    byte[].class);
+    try {
+    ResponseEntity<byte[]> response = restTemplate.exchange(
+    URI.create(fileUrl),
+    HttpMethod.GET,
+    null,
+    byte[].class);
 
-            if (response.getStatusCode().is2xxSuccessful()) {
-                byte[] bytes = response.getBody();
+    if (response.getStatusCode().is2xxSuccessful()) {
+    byte[] bytes = response.getBody();
 
-                String fileName = UUID.randomUUID().toString() + "-"
-                        + Paths.get(new URI(fileUrl).getPath()).getFileName();
+    String fileName = UUID.randomUUID().toString() + "-"
+    + Paths.get(new URI(fileUrl).getPath()).getFileName();
 
-                // CAMINHO MONTADO NO LINUX
-                // String basePath = "/mnt/scm_guias";
+    // CAMINHO MONTADO NO LINUX
+    // String basePath = "/mnt/scm_guias";
 
-                Path fullPath = Paths.get(basePath, fileName);
+    Path fullPath = Paths.get(basePath, fileName);
 
-                Files.createDirectories(fullPath.getParent());
-                Files.write(fullPath, bytes);
+    Files.createDirectories(fullPath.getParent());
+    Files.write(fullPath, bytes);
 
-                // LOG
-                log.info("[STORAGE] Arquivo salvo com sucesso | path={} | origem={}", fullPath, fileUrl);
+    // LOG
+    log.info("[STORAGE] Arquivo salvo com sucesso | path={} | origem={}",
+    fullPath, fileUrl);
 
-                return fullPath.toString();
+    return fullPath.toString();
 
-            } else {
-                throw new RuntimeException("Falha ao baixar arquivo: " + response.getStatusCode());
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao baixar arquivo do S3: " + fileUrl, e);
-        }
+    } else {
+    throw new RuntimeException("Falha ao baixar arquivo: " +
+    response.getStatusCode());
     }
+    } catch (Exception e) {
+    throw new RuntimeException("Erro ao baixar arquivo do S3: " + fileUrl, e);
+    }
+    }
+
+    public String downloadAndSave(String fileUrl, String protocolo) {
+    try {
+    ResponseEntity<byte[]> response = restTemplate.exchange(
+    URI.create(fileUrl),
+    HttpMethod.GET,
+    null,
+    byte[].class);
+
+    if (response.getStatusCode().is2xxSuccessful()) {
+    byte[] bytes = response.getBody();
+
+    // String fileName = UUID.randomUUID() + "-"
+    // + Paths.get(new URI(fileUrl).getPath()).getFileName();
+    String fileName = Paths.get(new
+    URI(fileUrl).getPath()).getFileName().toString();
+
+    // 👇 ORGANIZA POR PROTOCOLO
+    Path folderPath = Paths.get(basePath, protocolo);
+
+    Files.createDirectories(folderPath);
+
+    Path fullPath = folderPath.resolve(fileName);
+
+    Files.write(fullPath, bytes);
+
+    log.info("[STORAGE] Salvo | protocolo={} | path={}", protocolo, fullPath);
+
+    return fullPath.toString();
+    }
+
+    throw new RuntimeException("Falha ao baixar arquivo");
+
+    } catch (Exception e) {
+    throw new RuntimeException("Erro ao baixar arquivo: " + fileUrl, e);
+    }
+    }
+
+    
 }

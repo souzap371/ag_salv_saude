@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   crm_mosia:
-    image: souzap371/ag_scm:1.0.7
+    image: souzap371/ag_scm:2.0.2
     environment:
       - SERVER_PORT=443
       - DB_HOST=172.16.0.133

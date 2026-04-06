@@ -49,6 +49,9 @@ public class AutorizacaoService {
                         // String localPath = storageService.downloadAndSave(ar.getUrlOriginal(),
                         // folder);
                         String localPath = storageService.downloadAndSave(ar.getUrlOriginal());
+                        // String localPath = storageService.downloadAndSave(
+                        //         ar.getUrlOriginal(),
+                        //         entity.getProtocolo());
                         ar.setCaminhoLocal(localPath);
                         ar.setBaixadoEm(OffsetDateTime.now());
                         ar.setAutorizacao(entity);
