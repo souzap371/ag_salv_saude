@@ -22,7 +22,7 @@ public class SincronizacaoMosiaScheduler {
         this.mosiaService = mosiaService;
     }
 
-    @Scheduled(fixedDelay = 60000) // a cada 60 segundos
+    @Scheduled(fixedDelay = 15000) // a cada 15 segundos
     @Transactional
     public void sincronizarComMosia() {
         List<AutorizacaoSolicitada> pendentes = repository.findBySincronizadoMosia("N");
