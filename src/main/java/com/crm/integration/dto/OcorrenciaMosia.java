@@ -1,6 +1,5 @@
 package com.crm.integration.dto;
 
-import java.util.List;
 
 public class OcorrenciaMosia {
     private String protocolo;

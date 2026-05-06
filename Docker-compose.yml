@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   crm_mosia:
-    image: souzap371/ag_scm:2.0.3
+    image: souzap371/ag_scm:2.0.4
     environment:
       - SERVER_PORT=443
       - DB_HOST=172.16.0.133
@@ -13,7 +13,7 @@ services:
     ports:
       - "443:443"
     volumes:
-      - /home/omnilink/certificado/2025certificado39405:/certificado
+      - /home/omnilink/certificado/2026certificado41915:/certificado
       - /mnt/scm_guias:/mnt/scm_guias
     deploy:
       mode: replicated

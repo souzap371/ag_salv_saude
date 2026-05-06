@@ -57,7 +57,7 @@ public class MensageriaService {
 
             ResponseEntity<String> response = restTemplate.postForEntity(mosiaApiUrl, entity, String.class);
 
-            System.out.println("[SERVICE] Resposta Mosia: HTTP " + response.getStatusCodeValue() +
+            System.out.println("[SERVICE] Resposta Mosia: HTTP " + response.getStatusCode() +
                     " | Body: " + response.getBody());
 
             if (!response.getStatusCode().is2xxSuccessful()) {

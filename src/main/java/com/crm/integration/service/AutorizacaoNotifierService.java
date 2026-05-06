@@ -56,7 +56,7 @@ public class AutorizacaoNotifierService {
 
             ResponseEntity<String> resp = rest.postForEntity(mosiaApiUrl, entity, String.class);
 
-            System.out.println("[MOSIA-NOTIFIER] Resposta: HTTP " + resp.getStatusCodeValue() + " - " + resp.getBody());
+            System.out.println("[MOSIA-NOTIFIER] Resposta: HTTP " + resp.getStatusCode() + " - " + resp.getBody());
 
             if (!resp.getStatusCode().is2xxSuccessful()) {
                 System.err.println("[MOSIA-NOTIFIER] Erro: Resposta não foi 200. Verificar token, URL ou payload.");

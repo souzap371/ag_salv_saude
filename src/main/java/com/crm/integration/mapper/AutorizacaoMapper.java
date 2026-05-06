@@ -4,11 +4,6 @@ import com.crm.integration.model.AutorizacaoArquivo;
 import com.crm.integration.model.AutorizacaoSolicitada;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.URL;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 

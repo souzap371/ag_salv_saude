@@ -5,7 +5,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Data;
 
 // @Entity
 // @Table(name = "autorizacao_solicitada", indexes = {

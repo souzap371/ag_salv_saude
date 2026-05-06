@@ -11,7 +11,6 @@ import com.crm.integration.model.MosiaCallbackRequest;
 import com.crm.integration.model.MosiaStatusUpdateRequest;
 import com.crm.integration.model.Ocorrencia;
 import com.crm.integration.model.OcorrenciaResponse;
-import com.crm.integration.model.StatusUpdateRequest;
 import com.crm.integration.model.UltimosProtocolosResponse;
 import com.crm.integration.repository.AutorizacaoRepository;
 import com.crm.integration.repository.OcorrenciaRepository;
@@ -25,10 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
