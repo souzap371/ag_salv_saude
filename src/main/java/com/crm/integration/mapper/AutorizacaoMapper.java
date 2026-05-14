@@ -24,6 +24,10 @@ public class AutorizacaoMapper {
 
         // Campos principais
         JsonNode ocorrencia = root.path("ocorrencia");
+        if (!ocorrencia.path("idOcorrencia").isMissingNode()) {
+            autorizacao.setMosiaOcorrenciaId(
+                    ocorrencia.path("idOcorrencia").asLong());
+        }
         JsonNode solicitacao = ocorrencia.path("solicitacao");
         JsonNode formulario = solicitacao.path("formularios").get(0); // pegando o primeiro formulário
         JsonNode assunto = ocorrencia.path("assunto");
@@ -65,39 +69,38 @@ public class AutorizacaoMapper {
             }
         }
 
-
         List<AutorizacaoArquivo> arquivos = new ArrayList<>();
 
-JsonNode formularios = solicitacao.path("formularios");
+        JsonNode formularios = solicitacao.path("formularios");
 
-if (formularios.isArray()) {
-    for (JsonNode form : formularios) {
+        if (formularios.isArray()) {
+            for (JsonNode form : formularios) {
 
-        JsonNode itensArray = form.path("itens");
+                JsonNode itensArray = form.path("itens");
 
-        if (itensArray.isArray()) {
-            for (JsonNode item : itensArray) {
+                if (itensArray.isArray()) {
+                    for (JsonNode item : itensArray) {
 
-                JsonNode imagens = item.path("arquivo");
+                        JsonNode imagens = item.path("arquivo");
 
-                if (imagens.isArray()) {
-                    for (JsonNode img : imagens) {
+                        if (imagens.isArray()) {
+                            for (JsonNode img : imagens) {
 
-                        AutorizacaoArquivo arquivo = new AutorizacaoArquivo();
-                        arquivo.setNomeOriginal(img.path("name").asText());
-                        arquivo.setUrlOriginal(img.path("url").asText());
-                       
-                        arquivo.setAutorizacao(autorizacao);
+                                AutorizacaoArquivo arquivo = new AutorizacaoArquivo();
+                                arquivo.setNomeOriginal(img.path("name").asText());
+                                arquivo.setUrlOriginal(img.path("url").asText());
 
-                        arquivos.add(arquivo);
+                                arquivo.setAutorizacao(autorizacao);
+
+                                arquivos.add(arquivo);
+                            }
+                        }
                     }
                 }
             }
         }
-    }
-}
 
-autorizacao.setArquivos(arquivos);
+        autorizacao.setArquivos(arquivos);
 
         return autorizacao;
     }

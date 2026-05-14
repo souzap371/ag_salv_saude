@@ -5,16 +5,13 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
 // @Entity
 // @Table(name = "autorizacao_solicitada", indexes = {
 //         @Index(name = "idx_autorizacao_protocolo", columnList = "protocolo", unique = true)
 // })
 
-
 @Entity
 @Table(name = "autorizacao_solicitada" /* sem unique index por protocolo */)
-
 
 public class AutorizacaoSolicitada {
 
@@ -36,10 +33,8 @@ public class AutorizacaoSolicitada {
 
     private String status; // controle local (PENDENTE/APROVADO/REJEITADO)
 
-     @Column(name = "STATUS_ID")
+    @Column(name = "STATUS_ID")
     private String statusId;
-
-    
 
     @Lob
     private String rawCallbackJson;
@@ -51,11 +46,10 @@ public class AutorizacaoSolicitada {
     private OffsetDateTime updatedAt;
 
     @Column(name = "sincronizado_mosia")
-private String sincronizadoMosia = "S"; // padrão: já sincronizado
+    private String sincronizadoMosia = "S"; // padrão: já sincronizado
 
-@Column(name = "ultima_sincronizacao")
-private OffsetDateTime ultimaSincronizacao;
-
+    @Column(name = "ultima_sincronizacao")
+    private OffsetDateTime ultimaSincronizacao;
 
     // @Column(name = "CHAVEUNICA", unique = true)
     // private String chaveUnica;
@@ -64,6 +58,17 @@ private OffsetDateTime ultimaSincronizacao;
 
     @Column(name = "NUMEROCONTRATO")
     private String numeroContrato;
+
+    @Column(name = "mosia_ocorrencia_id")
+    private Long mosiaOcorrenciaId;
+
+    public Long getMosiaOcorrenciaId() {
+        return mosiaOcorrenciaId;
+    }
+
+    public void setMosiaOcorrenciaId(Long mosiaOcorrenciaId) {
+        this.mosiaOcorrenciaId = mosiaOcorrenciaId;
+    }
 
     // RELAÇÃO COM AUTORIZACAOARQUIVO
     @OneToMany(mappedBy = "autorizacao", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -90,9 +95,9 @@ private OffsetDateTime ultimaSincronizacao;
         return statusId;
     }
 
-     public void setStatusId(String statusId) {
-         this.statusId = statusId;
-     }
+    public void setStatusId(String statusId) {
+        this.statusId = statusId;
+    }
 
     public void setId(Long id) {
         this.id = id;
@@ -121,6 +126,7 @@ private OffsetDateTime ultimaSincronizacao;
     public void setNumeroContrato(String numeroContrato) {
         this.numeroContrato = numeroContrato;
     }
+
     public String getNome() {
         return nome;
     }
@@ -178,21 +184,20 @@ private OffsetDateTime ultimaSincronizacao;
     }
 
     public String getSincronizadoMosia() {
-    return sincronizadoMosia;
-}
+        return sincronizadoMosia;
+    }
 
-public void setSincronizadoMosia(String sincronizadoMosia) {
-    this.sincronizadoMosia = sincronizadoMosia;
-}
+    public void setSincronizadoMosia(String sincronizadoMosia) {
+        this.sincronizadoMosia = sincronizadoMosia;
+    }
 
-public OffsetDateTime getUltimaSincronizacao() {
-    return ultimaSincronizacao;
-}
+    public OffsetDateTime getUltimaSincronizacao() {
+        return ultimaSincronizacao;
+    }
 
-public void setUltimaSincronizacao(OffsetDateTime ultimaSincronizacao) {
-    this.ultimaSincronizacao = ultimaSincronizacao;
-}
-
+    public void setUltimaSincronizacao(OffsetDateTime ultimaSincronizacao) {
+        this.ultimaSincronizacao = ultimaSincronizacao;
+    }
 
     public OffsetDateTime getUpdatedAt() {
         return updatedAt;
@@ -234,4 +239,3 @@ public void setUltimaSincronizacao(OffsetDateTime ultimaSincronizacao) {
         this.observacao = observacao;
     }
 }
-

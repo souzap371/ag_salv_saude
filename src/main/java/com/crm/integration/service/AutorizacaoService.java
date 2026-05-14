@@ -46,13 +46,21 @@ public class AutorizacaoService {
                 if (ar.getUrlOriginal() != null && ar.getCaminhoLocal() == null) {
                     try {
                         String folder = "/uploads/autorizacoes";
-                        String localPath = storageService.downloadAndSave(ar.getUrlOriginal());
+                        // String localPath = storageService.downloadAndSave(ar.getUrlOriginal());
+                        String localPath = storageService.downloadAndSave(
+                                ar.getUrlOriginal(),
+                                entity.getProtocolo());
                         ar.setCaminhoLocal(localPath);
+                        String nomeArquivo = java.nio.file.Paths
+                                .get(localPath)
+                                .getFileName()
+                                .toString();
+                        ar.setNomeOriginal(nomeArquivo);
                         ar.setBaixadoEm(OffsetDateTime.now());
                         ar.setAutorizacao(entity);
                     } catch (Exception e) {
                         log.error("Falha ao baixar arquivo {} : {}", ar.getUrlOriginal(), e.getMessage(), e);
-                        
+
                     }
                 }
             }

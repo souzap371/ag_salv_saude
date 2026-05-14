@@ -35,7 +35,7 @@ public class SincronizacaoMosiaScheduler {
 
             System.out.println("[MOSIA SYNC] Enviando protocolo " + protocolo + " com status " + status);
 
-            boolean enviado = mosiaService.atualizarStatusNoMosia(protocolo, status, aut.getChaveUnica());
+            boolean enviado = mosiaService.atualizarStatusNoMosia(aut.getMosiaOcorrenciaId(), protocolo, status, aut.getChaveUnica());
 
             if (enviado) {
                 aut.setSincronizadoMosia("S");

@@ -251,7 +251,7 @@ public class OcorrenciaController {
                 String chaveUnica = autorizacao.getChaveUnica();
 
                 // 🔹 Atualiza também no MOSIA
-                boolean mosiaOk = mosiaIntegrationService.atualizarStatusNoMosia(protocolo, nomeStatus, chaveUnica);
+                boolean mosiaOk = mosiaIntegrationService.atualizarStatusNoMosia(autorizacao.getMosiaOcorrenciaId(), protocolo, nomeStatus, chaveUnica);
 
                 // 🔹 Monta mensagem e resposta
                 String mensagem = mosiaOk

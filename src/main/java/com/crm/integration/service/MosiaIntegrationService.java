@@ -27,9 +27,16 @@ public class MosiaIntegrationService {
      * Atualiza o status da ocorrência no MOSIA.
      * Aceita tanto o ID numérico quanto o nome do status.
      */
-    public boolean atualizarStatusNoMosia(String protocolo, String statusValor, String chaveUnica) {
+    // public boolean atualizarStatusNoMosia(String protocolo, String statusValor,
+    // String chaveUnica)
+    public boolean atualizarStatusNoMosia(
+            Long idOcorrencia,
+            String protocolo,
+            String statusValor,
+            String chaveUnica) {
         try {
-            String url = mosiaOcorrenciaUrl + "/" + protocolo + "/status";
+            // String url = mosiaOcorrenciaUrl + "/" + protocolo + "/status";
+            String url = mosiaOcorrenciaUrl + "/" + idOcorrencia + "/status";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -75,15 +82,15 @@ public class MosiaIntegrationService {
     private Integer mapearCodigoPorNome(String nomeStatus) {
         if (nomeStatus == null)
             return null;
-        switch (nomeStatus.trim()) {
-            case "Enviado":
-                return 4112;
-            case "Em Atendimento":
-                return 4110;
-            case "Processado - Consulte Liberações":
-                return 4121;
-            case "Cancelado":
-                return 4122;
+
+        switch (nomeStatus.trim().toUpperCase()) {
+
+            case "ENVIADA":
+                return 4682;
+
+            case "SOLICITAÇÃO EM ANÁLISE":
+                return 4681;
+
             default:
                 log.warn("Status MOSIA não mapeado: {}", nomeStatus);
                 return null;
