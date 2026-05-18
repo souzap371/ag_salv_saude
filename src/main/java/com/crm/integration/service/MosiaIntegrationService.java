@@ -35,8 +35,8 @@ public class MosiaIntegrationService {
             String statusValor,
             String chaveUnica) {
         try {
-            // String url = mosiaOcorrenciaUrl + "/" + protocolo + "/status";
-            String url = mosiaOcorrenciaUrl + "/" + idOcorrencia + "/status";
+            String url = mosiaOcorrenciaUrl + "/" + protocolo + "/status";
+            // String url = mosiaOcorrenciaUrl + "/" + idOcorrencia + "/status";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
