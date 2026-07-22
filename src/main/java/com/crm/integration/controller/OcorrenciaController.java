@@ -179,33 +179,76 @@ public class OcorrenciaController {
         }
 
         // DETALHE DA OCORRÊNCIA
+        // @GetMapping("/{protocolo}")
+        // public ResponseEntity<OcorrenciaResponse> detalheOcorrencia(
+        // @RequestHeader("Authorization") String authorization,
+        // @PathVariable("protocolo") String protocolo) {
+
+        // // Validação do token de autorização (implemente a lógica conforme sua
+        // // necessidade)
+        // if (!isValidToken(authorization)) {
+        // OcorrenciaResponse response = new OcorrenciaResponse(false, "Token de
+        // autorização inválido.",
+        // 401,
+        // System.currentTimeMillis(), null);
+        // return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        // }
+
+        // // Buscar a ocorrência pelo protocolo informado
+        // List<Ocorrencia> ocorrenciaOpt =
+        // ocorrenciaRepository.findByProtocolo(protocolo);
+        // if (ocorrenciaOpt.isEmpty()) {
+        // Ocorrencia ocorrencia = ocorrenciaOpt.get(0);
+        // OcorrenciaResponse response = new OcorrenciaResponse(true,
+        // "Detalhes da ocorrência encontrados com sucesso.", 200,
+        // System.currentTimeMillis(), ocorrencia);
+        // return ResponseEntity.ok(response);
+        // } else {
+        // OcorrenciaResponse response = new OcorrenciaResponse(false, "Ocorrência não
+        // encontrada.", 404,
+        // System.currentTimeMillis(), null);
+        // return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        // }
+        // }
+
         @GetMapping("/{protocolo}")
         public ResponseEntity<OcorrenciaResponse> detalheOcorrencia(
                         @RequestHeader("Authorization") String authorization,
                         @PathVariable("protocolo") String protocolo) {
 
-                // Validação do token de autorização (implemente a lógica conforme sua
-                // necessidade)
                 if (!isValidToken(authorization)) {
-                        OcorrenciaResponse response = new OcorrenciaResponse(false, "Token de autorização inválido.",
-                                        401,
-                                        System.currentTimeMillis(), null);
-                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                        return ResponseEntity
+                                        .status(HttpStatus.UNAUTHORIZED)
+                                        .body(new OcorrenciaResponse(
+                                                        false,
+                                                        "Token de autorização inválido.",
+                                                        401,
+                                                        System.currentTimeMillis(),
+                                                        null));
                 }
 
-                // Buscar a ocorrência pelo protocolo informado
-                List<Ocorrencia> ocorrenciaOpt = ocorrenciaRepository.findByProtocolo(protocolo);
-                if (ocorrenciaOpt.isEmpty()) {
-                        Ocorrencia ocorrencia = ocorrenciaOpt.get(0);
-                        OcorrenciaResponse response = new OcorrenciaResponse(true,
-                                        "Detalhes da ocorrência encontrados com sucesso.", 200,
-                                        System.currentTimeMillis(), ocorrencia);
-                        return ResponseEntity.ok(response);
-                } else {
-                        OcorrenciaResponse response = new OcorrenciaResponse(false, "Ocorrência não encontrada.", 404,
-                                        System.currentTimeMillis(), null);
-                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                List<Ocorrencia> ocorrencias = ocorrenciaRepository.findByProtocolo(protocolo);
+
+                if (ocorrencias.isEmpty()) {
+                        return ResponseEntity
+                                        .status(HttpStatus.NOT_FOUND)
+                                        .body(new OcorrenciaResponse(
+                                                        false,
+                                                        "Ocorrência não encontrada.",
+                                                        404,
+                                                        System.currentTimeMillis(),
+                                                        null));
                 }
+
+                Ocorrencia ocorrencia = ocorrencias.get(0);
+
+                return ResponseEntity.ok(
+                                new OcorrenciaResponse(
+                                                true,
+                                                "Detalhes da ocorrência encontrados com sucesso.",
+                                                200,
+                                                System.currentTimeMillis(),
+                                                ocorrencia));
         }
 
         // ATUALIZAR STATUS DA OCORRÊNCIA
@@ -251,7 +294,10 @@ public class OcorrenciaController {
                 String chaveUnica = autorizacao.getChaveUnica();
 
                 // 🔹 Atualiza também no MOSIA
-                boolean mosiaOk = mosiaIntegrationService.atualizarStatusNoMosia(autorizacao.getMosiaOcorrenciaId(), protocolo, nomeStatus, chaveUnica);
+                boolean mosiaOk = mosiaIntegrationService.atualizarStatusNoMosia(
+                                protocolo,
+                                nomeStatus,
+                                chaveUnica);
 
                 // 🔹 Monta mensagem e resposta
                 String mensagem = mosiaOk
@@ -265,66 +311,151 @@ public class OcorrenciaController {
         }
 
         @PostMapping("/status/callback")
-        public ResponseEntity<Void> receberCallbackStatus(@RequestBody MosiaCallbackRequest callback) {
-                try {
-                        System.out.println("📩 Callback recebido do MOSIA:");
-                        System.out.println(
-                                        new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(callback));
+        @Transactional
+        public ResponseEntity<Void> receberCallbackStatus(
+                        @RequestBody MosiaCallbackRequest callback) {
 
-                        var ocorrencia = callback.getOcorrencia();
-                        if (ocorrencia == null || ocorrencia.getAtendimento() == null) {
-                                System.out.println("⚠️ Callback sem dados de ocorrência/atendimento válidos.");
-                                return ResponseEntity.ok().build();
+                try {
+                        log.info("Callback de status recebido do MOSIA.");
+
+                        if (callback == null || callback.getOcorrencia() == null) {
+                                log.warn("Callback ignorado: ocorrência não informada.");
+                                return ResponseEntity.badRequest().build();
                         }
 
-                        String protocolo = ocorrencia.getProtocolo();
+                        var ocorrencia = callback.getOcorrencia();
+
+                        if (ocorrencia.getAtendimento() == null
+                                        || ocorrencia.getAtendimento().getStatus() == null) {
+
+                                log.warn(
+                                                "Callback ignorado: atendimento ou status ausente. protocolo={}",
+                                                ocorrencia.getProtocolo());
+
+                                return ResponseEntity.badRequest().build();
+                        }
+
+                        String protocolo = normalizar(ocorrencia.getProtocolo());
+
                         String chaveUnica = ocorrencia.getSolicitante() != null
-                                        ? ocorrencia.getSolicitante().getChaveUnica()
+                                        ? somenteNumeros(
+                                                        ocorrencia.getSolicitante().getChaveUnica())
                                         : null;
+
                         String idStatus = ocorrencia.getAtendimento().getStatus().getId();
+
                         String nomeStatus = ocorrencia.getAtendimento().getStatus().getDescricao();
 
-                        System.out.printf("🔎 Atualizando protocolo=%s | chaveUnica=%s | status=%s (%s)%n",
-                                        protocolo, chaveUnica, nomeStatus, idStatus);
+                        if (protocolo == null || protocolo.isBlank()) {
+                                log.warn("Callback ignorado: protocolo não informado.");
+                                return ResponseEntity.badRequest().build();
+                        }
 
-                        var autorizacaoOpt = autorizacaoRepository.findTopByProtocoloOrderByCreatedAtDesc(protocolo);
+                        log.info(
+                                        "Processando callback MOSIA: protocolo={} statusId={} status={} chave={}",
+                                        protocolo,
+                                        idStatus,
+                                        nomeStatus,
+                                        mascararChave(chaveUnica));
+
+                        var autorizacaoOpt = autorizacaoRepository
+                                        .findTopByProtocoloOrderByCreatedAtDesc(protocolo);
+
+                        AutorizacaoSolicitada autorizacao;
 
                         if (autorizacaoOpt.isPresent()) {
-                                // 🔹 Atualiza registro existente
-                                var autorizacao = autorizacaoOpt.get();
+                                autorizacao = autorizacaoOpt.get();
+
+                                /*
+                                 * A chave recebida no callback vem da própria ocorrência
+                                 * existente no MOSIA. Portanto, deve atualizar a chave local.
+                                 */
+                                if (chaveUnica != null && !chaveUnica.isBlank()) {
+                                        autorizacao.setChaveUnica(chaveUnica);
+                                }
+
                                 autorizacao.setStatus(nomeStatus);
                                 autorizacao.setStatusId(idStatus);
-                                autorizacao.setUpdatedAt(java.time.OffsetDateTime.now());
+                                autorizacao.setSincronizadoMosia("S");
+
+                                autorizacao.setUltimaSincronizacao(
+                                                java.time.OffsetDateTime.now(
+                                                                java.time.ZoneId.of("America/Sao_Paulo")));
+
+                                autorizacao.setUpdatedAt(
+                                                java.time.OffsetDateTime.now(
+                                                                java.time.ZoneId.of("America/Sao_Paulo")));
+
                                 autorizacaoRepository.saveAndFlush(autorizacao);
 
-                                System.out.println("✅ Atualizado com sucesso no banco local!");
-                                System.out.printf("🧩 Gravado no banco: status=%s | status_id=%s%n",
-                                                autorizacao.getStatus(), autorizacao.getStatusId());
+                                log.info(
+                                                "Autorização atualizada pelo callback: protocolo={}",
+                                                protocolo);
+
                         } else {
-                                // 🔹 Cria um novo registro se não existir
-                                var nova = new AutorizacaoSolicitada();
-                                nova.setProtocolo(protocolo);
-                                nova.setChaveUnica(chaveUnica);
-                                nova.setStatus(nomeStatus);
-                                nova.setStatusId(String.valueOf(idStatus));
-                                nova.setCreatedAt(java.time.OffsetDateTime.now());
-                                nova.setUpdatedAt(java.time.OffsetDateTime.now());
-                                nova.setSincronizadoMosia("S");
+                                autorizacao = new AutorizacaoSolicitada();
 
-                                autorizacaoRepository.saveAndFlush(nova);
+                                autorizacao.setProtocolo(protocolo);
+                                autorizacao.setChaveUnica(chaveUnica);
+                                autorizacao.setStatus(nomeStatus);
+                                autorizacao.setStatusId(idStatus);
+                                autorizacao.setSincronizadoMosia("S");
 
-                                System.out.println("🆕 Novo registro criado com sucesso!");
-                                System.out.printf("🔎 Atualizando protocolo=%s | chaveUnica=%s | status=%s (%s)%n",
-                                                protocolo, chaveUnica, nomeStatus, idStatus);
+                                autorizacao.setUltimaSincronizacao(
+                                                java.time.OffsetDateTime.now(
+                                                                java.time.ZoneId.of("America/Sao_Paulo")));
 
+                                autorizacao.setCreatedAt(
+                                                java.time.OffsetDateTime.now(
+                                                                java.time.ZoneId.of("America/Sao_Paulo")));
+
+                                autorizacao.setUpdatedAt(
+                                                java.time.OffsetDateTime.now(
+                                                                java.time.ZoneId.of("America/Sao_Paulo")));
+
+                                autorizacaoRepository.saveAndFlush(autorizacao);
+
+                                log.info(
+                                                "Nova autorização criada pelo callback: protocolo={}",
+                                                protocolo);
                         }
 
                         return ResponseEntity.ok().build();
 
                 } catch (Exception e) {
-                        e.printStackTrace();
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                        log.error(
+                                        "Erro ao processar callback de status do MOSIA.",
+                                        e);
+
+                        return ResponseEntity
+                                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .build();
                 }
+        }
+
+        private String normalizar(String valor) {
+                if (valor == null) {
+                        return null;
+                }
+
+                String normalizado = valor.trim();
+                return normalizado.isEmpty() ? null : normalizado;
+        }
+
+        private String somenteNumeros(String valor) {
+                if (valor == null) {
+                        return null;
+                }
+
+                return valor.replaceAll("\\D", "");
+        }
+
+        private String mascararChave(String chave) {
+                if (chave == null || chave.length() < 4) {
+                        return "***";
+                }
+
+                return "***" + chave.substring(chave.length() - 4);
         }
 
         // CRIAR ANOTAÇÃO

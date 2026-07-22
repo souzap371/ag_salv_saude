@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   crm_mosia:
-    image: souzap371/ag_scm:3.0.2
+    image: souzap371/ag_scm:3.0.6
     environment:
       - SERVER_PORT=443
       - DB_HOST=172.16.0.133
@@ -15,6 +15,12 @@ services:
     volumes:
       - /home/omnilink/certificado/2026certificado41915:/certificado
       - /mnt/guias_sc:/mnt/guias_sc
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "200m"
+        max-file: "5"
     deploy:
       mode: replicated
       replicas: 1

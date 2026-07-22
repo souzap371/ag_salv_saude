@@ -29,48 +29,144 @@ public class MosiaIntegrationService {
      */
     // public boolean atualizarStatusNoMosia(String protocolo, String statusValor,
     // String chaveUnica)
+    // public boolean atualizarStatusNoMosia(
+    // Long idOcorrencia,
+    // String protocolo,
+    // String statusValor,
+    // String chaveUnica) {
+    // try {
+    // String url = mosiaOcorrenciaUrl + "/" + protocolo + "/status";
+    // // String url = mosiaOcorrenciaUrl + "/" + idOcorrencia + "/status";
+
+    // HttpHeaders headers = new HttpHeaders();
+    // headers.setContentType(MediaType.APPLICATION_JSON);
+    // headers.set("Authorization", mosiaToken);
+
+    // // tenta converter o status para número; se não conseguir, faz o mapeamento
+    // por
+    // // nome
+    // Integer idStatus = null;
+    // if (statusValor != null) {
+    // try {
+    // idStatus = Integer.valueOf(statusValor);
+    // } catch (NumberFormatException e) {
+    // idStatus = mapearCodigoPorNome(statusValor);
+    // }
+    // }
+
+    // MosiaStatusUpdateRequest request = new MosiaStatusUpdateRequest();
+    // request.setIdNovoStatus(idStatus);
+    // request.setTextoDesfecho(statusValor);
+    // request.setProtocolo(protocolo);
+    // request.setChaveUnicaSolicitante(chaveUnica);
+    // request.setManterAtribuicao(true);
+
+    // String jsonEnvio =
+    // mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
+    // log.info("Enviando atualização para MOSIA: url={} payload={}", url,
+    // jsonEnvio);
+
+    // HttpEntity<MosiaStatusUpdateRequest> entity = new HttpEntity<>(request,
+    // headers);
+    // ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT,
+    // entity, String.class);
+
+    // log.info("Retorno MOSIA -> {} : {}", response.getStatusCode(),
+    // response.getBody());
+    // return response.getStatusCode().is2xxSuccessful();
+
+    // } catch (Exception e) {
+    // log.error("Erro ao enviar atualização para MOSIA: {}", e.getMessage(), e);
+    // return false;
+    // }
+    // }
+
     public boolean atualizarStatusNoMosia(
-            Long idOcorrencia,
             String protocolo,
             String statusValor,
             String chaveUnica) {
+
         try {
-            String url = mosiaOcorrenciaUrl + "/" + protocolo + "/status";
-            // String url = mosiaOcorrenciaUrl + "/" + idOcorrencia + "/status";
+            if (protocolo == null || protocolo.isBlank()) {
+                log.warn("Não foi possível atualizar o MOSIA: protocolo não informado.");
+                return false;
+            }
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", mosiaToken);
+            if (chaveUnica == null || chaveUnica.isBlank()) {
+                log.warn(
+                        "Não foi possível atualizar o MOSIA: chave única não informada. protocolo={}",
+                        protocolo);
+                return false;
+            }
 
-            // tenta converter o status para número; se não conseguir, faz o mapeamento por
-            // nome
             Integer idStatus = null;
-            if (statusValor != null) {
+
+            if (statusValor != null && !statusValor.isBlank()) {
                 try {
-                    idStatus = Integer.valueOf(statusValor);
+                    idStatus = Integer.valueOf(statusValor.trim());
                 } catch (NumberFormatException e) {
                     idStatus = mapearCodigoPorNome(statusValor);
                 }
             }
 
+            if (idStatus == null) {
+                log.warn(
+                        "Não foi possível atualizar o MOSIA: status não mapeado. protocolo={} status={}",
+                        protocolo,
+                        statusValor);
+                return false;
+            }
+
+            String protocoloNormalizado = protocolo.trim();
+            String chaveNormalizada = chaveUnica.replaceAll("\\D", "");
+
+            String url = mosiaOcorrenciaUrl
+                    + "/"
+                    + protocoloNormalizado
+                    + "/status";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", mosiaToken);
+
             MosiaStatusUpdateRequest request = new MosiaStatusUpdateRequest();
+
             request.setIdNovoStatus(idStatus);
             request.setTextoDesfecho(statusValor);
-            request.setProtocolo(protocolo);
-            request.setChaveUnicaSolicitante(chaveUnica);
+            request.setProtocolo(protocoloNormalizado);
+            request.setChaveUnicaSolicitante(chaveNormalizada);
             request.setManterAtribuicao(true);
 
-            String jsonEnvio = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
-            log.info("Enviando atualização para MOSIA: url={} payload={}", url, jsonEnvio);
+            String jsonEnvio = mapper
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(request);
+
+            log.info(
+                    "Enviando atualização para MOSIA: url={} payload={}",
+                    url,
+                    jsonEnvio);
 
             HttpEntity<MosiaStatusUpdateRequest> entity = new HttpEntity<>(request, headers);
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
 
-            log.info("Retorno MOSIA -> {} : {}", response.getStatusCode(), response.getBody());
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.PUT,
+                    entity,
+                    String.class);
+
+            log.info(
+                    "Retorno MOSIA -> {} : {}",
+                    response.getStatusCode(),
+                    response.getBody());
+
             return response.getStatusCode().is2xxSuccessful();
 
         } catch (Exception e) {
-            log.error("Erro ao enviar atualização para MOSIA: {}", e.getMessage(), e);
+            log.error(
+                    "Erro ao enviar atualização para MOSIA: {}",
+                    e.getMessage(),
+                    e);
+
             return false;
         }
     }
