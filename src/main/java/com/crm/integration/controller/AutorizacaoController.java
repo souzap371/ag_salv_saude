@@ -1,79 +1,142 @@
 package com.crm.integration.controller;
 
+import com.crm.integration.mapper.AutorizacaoMapper;
 import com.crm.integration.model.AutorizacaoSolicitada;
 import com.crm.integration.service.AutorizacaoService;
-import com.crm.integration.mapper.AutorizacaoMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/clientes/autorizacao")
 public class AutorizacaoController {
 
-    private final AutorizacaoService autorizacaoService;
-    private final AutorizacaoMapper autorizacaoMapper;
+        private static final Logger log = LoggerFactory.getLogger(
+                        AutorizacaoController.class);
 
-    public AutorizacaoController(AutorizacaoService autorizacaoService,
-            AutorizacaoMapper autorizacaoMapper) {
-        this.autorizacaoService = autorizacaoService;
-        this.autorizacaoMapper = autorizacaoMapper;
-    }
+        private final AutorizacaoService autorizacaoService;
+        private final AutorizacaoMapper autorizacaoMapper;
 
-    @PostMapping("/callback")
-    public ResponseEntity<String> receiveCallback(@RequestBody String rawBody,
-            HttpServletRequest req) {
-        System.out.println("Callback cru recebido: " + rawBody);
-        try {
-            AutorizacaoSolicitada entity = autorizacaoMapper.mapCallbackToEntity(rawBody);
-            autorizacaoService.saveAutorizacao(entity);
-            return ResponseEntity.ok("Callback processado");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("Erro ao processar callback");
-        }
-    }
-    @PostMapping("/{protocolo}/status")
-public ResponseEntity<String> updateStatus(@PathVariable String protocolo,
-        @RequestParam String status) {
-    AutorizacaoSolicitada novo = autorizacaoService.registrarNovoStatus(protocolo, status);
-    return ResponseEntity.ok("Novo status registrado e Mosia notificado. ID: " + novo.getId());
-}
+        public AutorizacaoController(
+                        AutorizacaoService autorizacaoService,
+                        AutorizacaoMapper autorizacaoMapper) {
 
-@PostMapping("/callback/status")
-public ResponseEntity<String> receiveStatusCallback(@RequestBody String rawBody) {
-    System.out.println("Callback de STATUS recebido: " + rawBody);
-    try {
-        // Extrair protocolo e status do JSON recebido
-        String protocolo = extrairCampo(rawBody, "protocolo");
-        String status = extrairCampo(rawBody, "status");
+                this.autorizacaoService = autorizacaoService;
 
-        if (protocolo == null || status == null) {
-            return ResponseEntity.badRequest().body("Campos 'protocolo' e 'status' são obrigatórios");
+                this.autorizacaoMapper = autorizacaoMapper;
         }
 
-        // Atualiza o status e notifica Mosia
-        autorizacaoService.registrarNovoStatus(protocolo, status);
+        /**
+         * Hook "Autorização: Solicitado".
+         *
+         * Como o conteúdo veio da própria Mosia, ele será salvo
+         * diretamente como sincronizado.
+         */
+        @PostMapping("/callback")
+        public ResponseEntity<String> receiveCallback(
+                        @RequestBody String rawBody) {
 
-        return ResponseEntity.ok("Status atualizado para " + status + " no protocolo " + protocolo);
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(500).body("Erro ao processar callback de status");
-    }
-}
+                log.info(
+                                "[AUTORIZACAO CALLBACK] Callback recebido.");
 
-/**
- * Método auxiliar simples para extrair campos de JSON sem precisar criar DTO.
- */
-private String extrairCampo(String json, String campo) {
-    try {
-        com.fasterxml.jackson.databind.JsonNode node =
-                new com.fasterxml.jackson.databind.ObjectMapper().readTree(json);
-        return node.has(campo) ? node.get(campo).asText() : null;
-    } catch (Exception e) {
-        return null;
-    }
-}
+                try {
+                        AutorizacaoSolicitada entity = autorizacaoMapper
+                                        .mapCallbackToEntity(rawBody);
 
+                        if (entity == null) {
+                                log.warn(
+                                                "[AUTORIZACAO CALLBACK] "
+                                                                + "Mapper retornou entidade nula.");
 
+                                return ResponseEntity
+                                                .badRequest()
+                                                .body(
+                                                                "Não foi possível interpretar o callback.");
+                        }
+
+                        /*
+                         * O callback veio da própria Mosia.
+                         */
+                        entity.setSincronizadoMosia("S");
+                        entity.setRawCallbackJson(rawBody);
+
+                        autorizacaoService
+                                        .saveAutorizacao(entity);
+
+                        log.info(
+                                        "[AUTORIZACAO CALLBACK] "
+                                                        + "Callback processado. protocolo={}",
+                                        entity.getProtocolo());
+
+                        return ResponseEntity.ok(
+                                        "Callback processado.");
+
+                } catch (IllegalArgumentException e) {
+                        log.warn(
+                                        "[AUTORIZACAO CALLBACK] "
+                                                        + "Callback inválido: {}",
+                                        e.getMessage());
+
+                        return ResponseEntity
+                                        .badRequest()
+                                        .body(e.getMessage());
+
+                } catch (Exception e) {
+                        log.error(
+                                        "[AUTORIZACAO CALLBACK] "
+                                                        + "Erro ao processar callback.",
+                                        e);
+
+                        return ResponseEntity
+                                        .status(
+                                                        HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body(
+                                                        "Erro ao processar callback.");
+                }
+        }
+
+        /**
+         * Registra uma alteração criada pelo sistema local.
+         *
+         * Esse endpoint não envia diretamente para a Mosia.
+         * Ele cria uma pendência para o scheduler.
+         */
+        @PostMapping("/{protocolo}/status")
+        public ResponseEntity<String> updateStatus(
+                        @PathVariable String protocolo,
+                        @RequestParam String status) {
+
+                try {
+                        AutorizacaoSolicitada novo = autorizacaoService
+                                        .registrarNovoStatus(
+                                                        protocolo,
+                                                        status);
+
+                        return ResponseEntity.ok(
+                                        "Novo status registrado para sincronização. "
+                                                        + "ID: "
+                                                        + novo.getId());
+
+                } catch (IllegalArgumentException e) {
+                        return ResponseEntity
+                                        .badRequest()
+                                        .body(e.getMessage());
+
+                } catch (Exception e) {
+                        log.error(
+                                        "Erro ao registrar novo status. "
+                                                        + "protocolo={} status={}",
+                                        protocolo,
+                                        status,
+                                        e);
+
+                        return ResponseEntity
+                                        .status(
+                                                        HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body(
+                                                        "Erro ao registrar novo status.");
+                }
+        }
 }
