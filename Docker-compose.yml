@@ -2,19 +2,19 @@ version: '3.7'
 
 services:
   crm_mosia:
-    image: souzap371/ag_scm:4.0.2
+    image: souzap371/ag_salv_saude:1.0.1
     environment:
-      - SERVER_PORT=443
-      - DB_HOST=172.16.0.133
+      - SERVER_PORT=26812
+      - DB_HOST=10.122.85.122
       - DB_PORT=1521
-      - DB_SERVICE=senior
+      - DB_SERVICE=pdbsalv
       - DB_USER=appmobile
       - DB_PASSWORD="mobile#1022"
     ports:
-      - "443:443"
-    volumes:
-      - /home/omnilink/certificado/2026certificado41915:/certificado
-      - /mnt/guias_sc:/mnt/guias_sc
+      - "26812:26812"
+    # volumes:
+    #   - /home/omnilink/certificado:/certificado
+    #   - /mnt/guias:/mnt/guias
 
     logging:
       driver: json-file
