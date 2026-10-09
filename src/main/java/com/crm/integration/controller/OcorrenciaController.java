@@ -15,6 +15,8 @@ import com.crm.integration.model.UltimosProtocolosResponse;
 import com.crm.integration.repository.AutorizacaoRepository;
 import com.crm.integration.repository.OcorrenciaRepository;
 import com.crm.integration.service.MosiaIntegrationService;
+import com.crm.integration.service.OcorrenciaClassificacaoService;
+import com.crm.integration.service.OcorrenciaAnexoService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -53,6 +55,12 @@ public class OcorrenciaController {
         @Autowired
         private ObjectMapper objectMapper;
 
+        @Autowired
+        private OcorrenciaClassificacaoService ocorrenciaClassificacaoService;
+
+        @Autowired
+        private OcorrenciaAnexoService ocorrenciaAnexoService;
+
         // CRIAR OCORRENCIA
         @PostMapping
         public ResponseEntity<OcorrenciaResponse> criarOcorrencia(
@@ -71,6 +79,7 @@ public class OcorrenciaController {
                 // 1) seu fluxo normal de validação e save
                 ocorrencia.setDataRegistro(LocalDateTime.now());
                 ocorrencia.setDataAtualizacao(LocalDateTime.now());
+                ocorrenciaClassificacaoService.classificar(ocorrencia);
                 Ocorrencia saved = ocorrenciaRepository.save(ocorrencia);
 
                 // 2) agora serializa e insere na tabela de BLOBs
@@ -132,8 +141,11 @@ public class OcorrenciaController {
                         }
 
                         // Define data de registro e atualização
-                        ocorrencia.setDataRegistro(LocalDateTime.now());
-                        ocorrencia.setDataAtualizacao(LocalDateTime.now());
+                        if (ocorrencia.getDataRegistro() == null) ocorrencia.setDataRegistro(LocalDateTime.now());
+                        if (ocorrencia.getDataAtualizacao() == null) ocorrencia.setDataAtualizacao(LocalDateTime.now());
+
+                        ocorrenciaClassificacaoService.classificar(ocorrencia);
+                        ocorrenciaAnexoService.importarAnexosDosFormularios(ocorrencia);
 
                         // Salva a ocorrência no banco
                         Ocorrencia saved = ocorrenciaRepository.save(ocorrencia);

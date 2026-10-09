@@ -442,25 +442,21 @@ public class AutorizacaoService {
                 continue;
             }
 
-            if (arquivo.getCaminhoLocal() != null
-                    && !arquivo.getCaminhoLocal().isBlank()) {
+            if (arquivo.getCimaImagem() != null
+                    && arquivo.getCimaImagem().length > 0) {
                 arquivo.setAutorizacao(entity);
                 continue;
             }
 
             try {
-                String localPath = storageService.downloadAndSave(
-                        arquivo.getUrlOriginal(),
-                        entity.getProtocolo());
+                StorageService.ArquivoBaixado arquivoBaixado = storageService.download(
+                        arquivo.getUrlOriginal());
 
-                arquivo.setCaminhoLocal(localPath);
-
-                String nomeArquivo = java.nio.file.Paths
-                        .get(localPath)
-                        .getFileName()
-                        .toString();
-
-                arquivo.setNomeOriginal(nomeArquivo);
+                arquivo.setCimaImagem(arquivoBaixado.conteudo());
+                arquivo.setCaminhoLocal(null);
+                if (arquivo.getNomeOriginal() == null || arquivo.getNomeOriginal().isBlank()) {
+                    arquivo.setNomeOriginal(arquivoBaixado.nome());
+                }
                 arquivo.setBaixadoEm(
                         OffsetDateTime.now(ZONE_ID));
 
@@ -468,10 +464,9 @@ public class AutorizacaoService {
 
             } catch (Exception e) {
                 log.error(
-                        "Falha ao baixar arquivo. "
-                                + "protocolo={} url={} erro={}",
+                        "Falha ao baixar anexo para o banco. "
+                                + "protocolo={} erro={}",
                         entity.getProtocolo(),
-                        arquivo.getUrlOriginal(),
                         e.getMessage(),
                         e);
             }

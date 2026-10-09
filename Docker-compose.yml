@@ -2,14 +2,14 @@ version: '3.7'
 
 services:
   crm_mosia:
-    image: souzap371/ag_salv_saude:1.0.1
+    image: souzap371/ag_salv_saude:1.0.2
     environment:
       - SERVER_PORT=26812
-      - DB_HOST=10.122.85.122
+      - DB_HOST=10.122.85.100
       - DB_PORT=1521
       - DB_SERVICE=pdbsalv
       - DB_USER=appmobile
-      - DB_PASSWORD="mobile#1022"
+      - DB_PASSWORD="${CRM_DB_PASSWORD}"
     ports:
       - "26812:26812"
     # volumes:

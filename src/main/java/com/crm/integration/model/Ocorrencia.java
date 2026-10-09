@@ -8,9 +8,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+
+import com.crm.integration.enums.TipoNegocioOcorrencia;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "ocorrencias")
@@ -32,6 +40,10 @@ public class Ocorrencia {
 
     private String status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_negocio", nullable = false, length = 60)
+    private TipoNegocioOcorrencia tipoNegocio = TipoNegocioOcorrencia.OUTRA;
+
     @OneToMany(mappedBy = "ocorrencia", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Anotacao> anotacoes;
 
@@ -43,6 +55,23 @@ public class Ocorrencia {
 
     @OneToMany(cascade = CascadeType.ALL)
     private List<Formulario> formularios;
+
+    @OneToMany(mappedBy = "ocorrencia", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OcorrenciaArquivo> arquivos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "ocorrencia", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OcorrenciaTag> tags = new ArrayList<>();
+
+    @OneToMany(mappedBy = "ocorrencia", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OcorrenciaStatusHistorico> historicoStatus = new ArrayList<>();
+
+    @PrePersist
+    @PreUpdate
+    void vincularFilhos() {
+        arquivos.forEach(arquivo -> arquivo.setOcorrencia(this));
+        tags.forEach(tag -> tag.setOcorrencia(this));
+        historicoStatus.forEach(historico -> historico.setOcorrencia(this));
+    }
 
     public Long getId() {
         return id;
@@ -140,6 +169,11 @@ public class Ocorrencia {
         this.status = status;
     }
 
+    public TipoNegocioOcorrencia getTipoNegocio() { return tipoNegocio; }
+    public void setTipoNegocio(TipoNegocioOcorrencia tipoNegocio) {
+        this.tipoNegocio = tipoNegocio == null ? TipoNegocioOcorrencia.OUTRA : tipoNegocio;
+    }
+
     public Solicitante getSolicitante() {
         return solicitante;
     }
@@ -162,6 +196,19 @@ public class Ocorrencia {
 
     public void setFormularios(List<Formulario> formularios) {
         this.formularios = formularios;
+    }
+
+    public List<OcorrenciaArquivo> getArquivos() { return arquivos; }
+    public void setArquivos(List<OcorrenciaArquivo> arquivos) {
+        this.arquivos = arquivos == null ? new ArrayList<>() : arquivos;
+    }
+    public List<OcorrenciaTag> getTags() { return tags; }
+    public void setTags(List<OcorrenciaTag> tags) {
+        this.tags = tags == null ? new ArrayList<>() : tags;
+    }
+    public List<OcorrenciaStatusHistorico> getHistoricoStatus() { return historicoStatus; }
+    public void setHistoricoStatus(List<OcorrenciaStatusHistorico> historicoStatus) {
+        this.historicoStatus = historicoStatus == null ? new ArrayList<>() : historicoStatus;
     }
 
 }
