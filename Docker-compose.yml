@@ -1,36 +1,29 @@
-version: '3.7'
+version: "3.7"
 
 services:
   crm_mosia:
-    image: souzap371/ag_salv_saude:1.0.2
-    environment:
-      - SERVER_PORT=26812
-      - DB_HOST=10.122.85.100
-      - DB_PORT=1521
-      - DB_SERVICE=pdbsalv
-      - DB_USER=appmobile
-      - DB_PASSWORD="${CRM_DB_PASSWORD}"
+    image: souzap371/ag_salv_saude:1.0.3
+
+    env_file:
+      - ./config/crm/crm.env
+
     ports:
       - "26812:26812"
-    # volumes:
-    #   - /home/omnilink/certificado:/certificado
-    #   - /mnt/guias:/mnt/guias
 
     logging:
       driver: json-file
       options:
         max-size: "200m"
         max-file: "5"
+
     deploy:
       mode: replicated
       replicas: 1
       restart_policy:
         condition: on-failure
+
     networks:
       - solus-prd
 
 networks:
   solus-prd:
-   
-
-

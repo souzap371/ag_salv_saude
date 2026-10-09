@@ -15,10 +15,11 @@
     .summary{position:relative;z-index:1;display:flex;align-items:center;gap:12px;margin:28px 0 0;color:#dceaff;font-size:clamp(.95rem,2vw,1.08rem)}.dot{width:15px;height:15px;border-radius:50%;background:var(--yellow);box-shadow:0 0 0 7px rgba(255,200,87,.12),0 0 26px currentColor}
     body[data-health=up] .dot{background:var(--green);color:var(--green)}body[data-health=down] .dot{background:var(--red);color:var(--red)}
     .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}.metric{padding:19px 20px;border:1px solid var(--line);border-radius:17px;background:rgba(6,20,42,.62)}.metric small{display:block;margin-bottom:7px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase}.metric strong{font-size:1.08rem}
-    .section-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin:34px 2px 16px}h2{margin:0;font-size:clamp(1.5rem,3vw,2rem);letter-spacing:-.03em}.button{border:1px solid rgba(86,188,255,.45);border-radius:12px;padding:11px 15px;color:var(--text);background:rgba(26,112,207,.28);font:inherit;font-size:.86rem;font-weight:750;cursor:pointer}.button:hover{background:rgba(34,133,240,.42)}.button:disabled{cursor:wait;opacity:.62}
+    .section-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin:34px 2px 16px}.actions{display:flex;gap:10px;flex-wrap:wrap}h2{margin:0;font-size:clamp(1.5rem,3vw,2rem);letter-spacing:-.03em}.button{border:1px solid rgba(86,188,255,.45);border-radius:12px;padding:11px 15px;color:var(--text);background:rgba(26,112,207,.28);font:inherit;font-size:.86rem;font-weight:750;cursor:pointer}.button:hover{background:rgba(34,133,240,.42)}.button:disabled{cursor:wait;opacity:.62}.button.primary{color:#042238;background:var(--cyan)}.button.danger{border-color:rgba(255,100,124,.5);background:rgba(190,42,70,.25)}
     .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.panel{padding:23px;border-radius:20px}.panel h3{margin:0 0 9px}.endpoint{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 12px;padding:15px 0;border-top:1px solid rgba(129,172,225,.16)}.endpoint:first-of-type{border-top:0}.method{min-width:58px;padding:5px 7px;border-radius:7px;color:#071525;background:var(--cyan);text-align:center;font-size:.69rem;font-weight:900}.post{background:var(--green)}.put,.patch{background:var(--yellow)}.delete{background:var(--red)}.name{margin:1px 0 5px;font-size:.9rem;font-weight:760}.path{color:var(--muted);font:.78rem/1.5 ui-monospace,Consolas,monospace;overflow-wrap:anywhere}
     .empty{grid-column:1/-1;padding:34px;border:1px dashed var(--line);border-radius:18px;color:var(--muted);text-align:center}footer{display:flex;justify-content:space-between;gap:16px;margin-top:24px;color:var(--muted);font-size:.8rem}footer a{color:#a9dcff;text-decoration:none}
-    @media(max-width:760px){.metrics,.grid{grid-template-columns:1fr}.section-head,footer{align-items:stretch;flex-direction:column}.button{width:100%}}
+    dialog{width:min(920px,calc(100% - 28px));max-height:90vh;padding:0;border:1px solid var(--line);border-radius:22px;color:var(--text);background:#0a1b36;box-shadow:0 28px 100px rgba(0,0,0,.7)}dialog::backdrop{background:rgba(1,7,17,.78);backdrop-filter:blur(5px)}.dialog-body{padding:25px}.dialog-head{display:flex;align-items:start;justify-content:space-between;gap:18px;margin-bottom:20px}.dialog-head h2{margin-top:4px}.icon-button{border:0;color:var(--muted);background:transparent;font-size:1.7rem;cursor:pointer}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}.field label{color:var(--muted);font-size:.78rem;font-weight:750}.field input,.field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--text);background:#07152b;font:inherit}.check{display:flex;align-items:center;gap:9px;margin:14px 0}.check input{width:18px;height:18px}.notice{min-height:22px;margin:12px 0;color:var(--muted);font-size:.85rem}.notice.error{color:#ff9cad}.config-list{display:grid;gap:10px;margin-top:22px}.config-row{display:grid;grid-template-columns:minmax(180px,1.3fr) repeat(3,minmax(80px,.7fr)) auto;align-items:center;gap:10px;padding:13px;border:1px solid var(--line);border-radius:13px;background:rgba(5,18,39,.62)}.config-row small{display:block;color:var(--muted)}.pill{display:inline-block;margin-top:5px;padding:3px 7px;border-radius:99px;background:rgba(32,217,154,.14);color:var(--green);font-size:.7rem;font-weight:800}.pill.off{background:rgba(255,100,124,.12);color:#ff9cad}.row-actions{display:flex;gap:7px}.row-actions .button{padding:8px 10px}.divider{height:1px;margin:22px 0;background:var(--line)}
+    @media(max-width:760px){.metrics,.grid,.form-grid{grid-template-columns:1fr}.section-head,footer{align-items:stretch;flex-direction:column}.actions>.button{flex:1}.field.full{grid-column:auto}.config-row{grid-template-columns:1fr 1fr}.config-row>div:first-child,.row-actions{grid-column:1/-1}.row-actions .button{width:auto}}
   </style>
 </head>
 <body data-health="checking">
@@ -33,10 +34,37 @@
     <article class="metric"><small>Banco de dados</small><strong id="db-status">VERIFICANDO</strong></article>
     <article class="metric"><small>Rotas registradas</small><strong id="route-count">-</strong></article>
   </section>
-  <div class="section-head"><div><p class="eyebrow">Contrato publico</p><h2>Endpoints disponiveis</h2></div><button class="button" id="refresh" type="button">Verificar agora</button></div>
+  <div class="section-head"><div><p class="eyebrow">Contrato publico</p><h2>Endpoints disponiveis</h2></div><div class="actions"><button class="button" id="config-open" type="button">Configurar IDs do Mosia</button><button class="button" id="refresh" type="button">Verificar agora</button></div></div>
   <section class="grid" id="routes" aria-live="polite"><div class="empty">Carregando o contrato OpenAPI...</div></section>
   <footer><span id="last-check">Ultima verificacao: aguardando</span><a href="./swagger-ui/index.html">Abrir documentacao Swagger</a></footer>
 </main>
+<dialog id="config-dialog" aria-labelledby="config-title">
+  <div class="dialog-body">
+    <div class="dialog-head"><div><p class="eyebrow">Administracao</p><h2 id="config-title">Tipos de ocorrencia</h2></div><button class="icon-button" id="config-close" type="button" aria-label="Fechar">&times;</button></div>
+    <section id="config-auth">
+      <p>Informe o token administrativo para consultar e alterar as associacoes de IDs do Mosia.</p>
+      <div class="field"><label for="admin-token">Token administrativo</label><input id="admin-token" type="password" autocomplete="off"></div>
+      <p class="notice" id="auth-message"></p>
+      <button class="button primary" id="config-connect" type="button">Acessar configuracoes</button>
+    </section>
+    <section id="config-manager" hidden>
+      <form id="config-form">
+        <input id="config-id" type="hidden">
+        <div class="form-grid">
+          <div class="field full"><label for="tipo-negocio">Finalidade da ocorrencia</label><select id="tipo-negocio" required><option value="SOLICITACAO_AUTORIZACAO">Solicitacao de autorizacao</option><option value="ATUALIZACAO_CADASTRAL">Atualizacao cadastral</option><option value="REEMBOLSO">Reembolso</option><option value="OUTRA">Outra</option></select></div>
+          <div class="field"><label for="id-funcionalidade">ID da funcionalidade</label><input id="id-funcionalidade" type="number" min="1" step="1" placeholder="Ex.: 48"></div>
+          <div class="field"><label for="id-tipo-ocorrencia">ID do tipo de ocorrencia</label><input id="id-tipo-ocorrencia" type="number" min="1" step="1" placeholder="Ex.: 128"></div>
+          <div class="field"><label for="id-assunto">ID do assunto</label><input id="id-assunto" type="number" min="1" step="1" placeholder="Ex.: 173"></div>
+        </div>
+        <label class="check"><input id="config-ativo" type="checkbox" checked> Associacao ativa</label>
+        <p class="notice" id="config-message">Informe pelo menos um dos tres IDs.</p>
+        <div class="actions"><button class="button primary" id="config-save" type="submit">Salvar associacao</button><button class="button" id="config-cancel" type="button" hidden>Cancelar edicao</button></div>
+      </form>
+      <div class="divider"></div>
+      <div class="config-list" id="config-list" aria-live="polite"></div>
+    </section>
+  </div>
+</dialog>
 <script>
   const el=id=>document.getElementById(id),ui={title:el("title"),summary:el("summary"),app:el("app-status"),db:el("db-status"),count:el("route-count"),routes:el("routes"),last:el("last-check"),refresh:el("refresh")};
   const names={auth:"Autenticacao",autorizacao:"Autorizacao",meeting:"Atendimento",mensageria:"Mensageria",ocorrencias:"Ocorrencias",sessao:"Sessao",webhook:"Webhook"};
@@ -61,6 +89,29 @@
     ui.last.textContent=`Ultima verificacao: ${new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"medium"}).format(new Date())}`;ui.refresh.disabled=false;
   }
   ui.refresh.addEventListener("click",check);check();window.setInterval(check,60000);
+
+  const configUi={dialog:el("config-dialog"),open:el("config-open"),close:el("config-close"),auth:el("config-auth"),manager:el("config-manager"),token:el("admin-token"),connect:el("config-connect"),authMessage:el("auth-message"),form:el("config-form"),id:el("config-id"),tipo:el("tipo-negocio"),funcionalidade:el("id-funcionalidade"),tipoOcorrencia:el("id-tipo-ocorrencia"),assunto:el("id-assunto"),ativo:el("config-ativo"),message:el("config-message"),save:el("config-save"),cancel:el("config-cancel"),list:el("config-list")};
+  const tipoLabels={SOLICITACAO_AUTORIZACAO:"Solicitacao de autorizacao",ATUALIZACAO_CADASTRAL:"Atualizacao cadastral",REEMBOLSO:"Reembolso",OUTRA:"Outra"};
+  let adminToken="",configs=[];
+  const numeroOuNull=input=>input.value===""?null:Number(input.value);
+  async function adminRequest(path,options={}){
+    const response=await fetch(path,{...options,headers:{Accept:"application/json","Content-Type":"application/json","X-Admin-Token":adminToken,...(options.headers||{})}});
+    if(!response.ok){let message=`Erro HTTP ${response.status}`;try{const body=await response.json();message=body.detail||body.message||message}catch(e){}throw new Error(message)}
+    return response.status===204?null:response.json();
+  }
+  function resetConfigForm(){configUi.form.reset();configUi.id.value="";configUi.ativo.checked=true;configUi.save.textContent="Salvar associacao";configUi.cancel.hidden=true;configUi.message.className="notice";configUi.message.textContent="Informe pelo menos um dos tres IDs."}
+  function renderConfigs(){configUi.list.replaceChildren();if(!configs.length){const emptyBox=document.createElement("div");emptyBox.className="empty";emptyBox.textContent="Nenhuma associacao cadastrada.";configUi.list.appendChild(emptyBox);return}
+    configs.forEach(config=>{const row=document.createElement("article");row.className="config-row";const title=document.createElement("div");const strong=document.createElement("strong");strong.textContent=tipoLabels[config.tipoNegocio]||config.tipoNegocio;const pill=document.createElement("span");pill.className=`pill${config.ativo?"":" off"}`;pill.textContent=config.ativo?"ATIVA":"INATIVA";title.append(strong,pill);
+      const field=(label,value)=>{const box=document.createElement("div"),small=document.createElement("small"),text=document.createElement("span");small.textContent=label;text.textContent=value??"Qualquer";box.append(small,text);return box};
+      const actions=document.createElement("div");actions.className="row-actions";const edit=document.createElement("button");edit.type="button";edit.className="button";edit.textContent="Editar";edit.addEventListener("click",()=>editConfig(config));const remove=document.createElement("button");remove.type="button";remove.className="button danger";remove.textContent="Excluir";remove.addEventListener("click",()=>deleteConfig(config));actions.append(edit,remove);row.append(title,field("Funcionalidade",config.idFuncionalidade),field("Tipo",config.idTipoOcorrencia),field("Assunto",config.idAssunto),actions);configUi.list.appendChild(row)});
+  }
+  async function loadConfigs(){configs=await adminRequest("./admin/ocorrencia-tipos");renderConfigs()}
+  function editConfig(config){configUi.id.value=config.id;configUi.tipo.value=config.tipoNegocio;configUi.funcionalidade.value=config.idFuncionalidade??"";configUi.tipoOcorrencia.value=config.idTipoOcorrencia??"";configUi.assunto.value=config.idAssunto??"";configUi.ativo.checked=config.ativo;configUi.save.textContent="Atualizar associacao";configUi.cancel.hidden=false;configUi.form.scrollIntoView({behavior:"smooth",block:"start"})}
+  async function deleteConfig(config){if(!confirm(`Excluir a associacao "${tipoLabels[config.tipoNegocio]||config.tipoNegocio}"?`))return;try{await adminRequest(`./admin/ocorrencia-tipos/${config.id}`,{method:"DELETE"});await loadConfigs();resetConfigForm()}catch(error){configUi.message.className="notice error";configUi.message.textContent=error.message}}
+  configUi.open.addEventListener("click",()=>{configUi.dialog.showModal();setTimeout(()=>configUi.token.focus(),0)});configUi.close.addEventListener("click",()=>configUi.dialog.close());configUi.dialog.addEventListener("close",()=>{adminToken="";configUi.token.value="";configUi.auth.hidden=false;configUi.manager.hidden=true;resetConfigForm()});
+  configUi.connect.addEventListener("click",async()=>{adminToken=configUi.token.value;configUi.connect.disabled=true;configUi.authMessage.textContent="Validando acesso...";configUi.authMessage.className="notice";try{await loadConfigs();configUi.auth.hidden=true;configUi.manager.hidden=false;resetConfigForm()}catch(error){adminToken="";configUi.authMessage.className="notice error";configUi.authMessage.textContent=error.message}finally{configUi.connect.disabled=false}});
+  configUi.token.addEventListener("keydown",event=>{if(event.key==="Enter")configUi.connect.click()});configUi.cancel.addEventListener("click",resetConfigForm);
+  configUi.form.addEventListener("submit",async event=>{event.preventDefault();const payload={tipoNegocio:configUi.tipo.value,idFuncionalidade:numeroOuNull(configUi.funcionalidade),idTipoOcorrencia:numeroOuNull(configUi.tipoOcorrencia),idAssunto:numeroOuNull(configUi.assunto),ativo:configUi.ativo.checked};const id=configUi.id.value;configUi.save.disabled=true;try{await adminRequest(id?`./admin/ocorrencia-tipos/${id}`:"./admin/ocorrencia-tipos",{method:id?"PUT":"POST",body:JSON.stringify(payload)});await loadConfigs();resetConfigForm();configUi.message.textContent="Associacao salva com sucesso."}catch(error){configUi.message.className="notice error";configUi.message.textContent=error.message}finally{configUi.save.disabled=false}});
 </script>
 </body>
 </html>

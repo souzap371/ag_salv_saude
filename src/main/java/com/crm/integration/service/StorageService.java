@@ -2,9 +2,6 @@ package com.crm.integration.service;
 
 import java.net.URI;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -17,19 +14,12 @@ public class StorageService {
 
     private final RestTemplate restTemplate;
     private final long maxFileSizeBytes;
-    private final Set<String> allowedHosts;
 
     public StorageService(
             RestTemplate restTemplate,
-            @Value("${storage.database.max-file-size-bytes:10485760}") long maxFileSizeBytes,
-            @Value("${storage.database.allowed-hosts:}") String allowedHosts) {
+            @Value("${storage.database.max-file-size-bytes:10485760}") long maxFileSizeBytes) {
         this.restTemplate = restTemplate;
         this.maxFileSizeBytes = maxFileSizeBytes;
-        this.allowedHosts = Arrays.stream(allowedHosts.split(","))
-                .map(String::trim)
-                .filter(host -> !host.isBlank())
-                .map(String::toLowerCase)
-                .collect(Collectors.toUnmodifiableSet());
     }
 
     public ArquivoBaixado download(String fileUrl) {
@@ -60,9 +50,6 @@ public class StorageService {
         URI uri = URI.create(fileUrl);
         if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) {
             throw new IllegalArgumentException("A URL do anexo deve utilizar HTTPS.");
-        }
-        if (!allowedHosts.contains(uri.getHost().toLowerCase())) {
-            throw new IllegalArgumentException("Host do anexo não autorizado para download.");
         }
         return uri;
     }
