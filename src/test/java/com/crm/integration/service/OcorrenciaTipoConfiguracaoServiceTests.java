@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 class OcorrenciaTipoConfiguracaoServiceTests {
@@ -59,5 +60,31 @@ class OcorrenciaTipoConfiguracaoServiceTests {
                         TipoNegocioOcorrencia.REEMBOLSO, null, null, 99, true)));
 
         assertEquals(409, erro.getStatusCode().value());
+    }
+
+    @Test
+    void inicializaTipoAutorizacoesSalvQuandoAindaNaoExiste() {
+        OcorrenciaTipoConfiguracaoRepository repository = mock(OcorrenciaTipoConfiguracaoRepository.class);
+        when(repository.existsByIdTipoOcorrencia(1895)).thenReturn(false);
+        OcorrenciaTipoConfiguracaoService service = new OcorrenciaTipoConfiguracaoService(repository);
+
+        service.inicializarTipoAutorizacoesSalv();
+
+        var captor = org.mockito.ArgumentCaptor.forClass(OcorrenciaTipoConfiguracao.class);
+        verify(repository).save(captor.capture());
+        assertEquals(TipoNegocioOcorrencia.SOLICITACAO_AUTORIZACAO, captor.getValue().getTipoNegocio());
+        assertEquals(1895, captor.getValue().getIdTipoOcorrencia());
+        assertEquals(true, captor.getValue().isAtivo());
+    }
+
+    @Test
+    void naoDuplicaTipoAutorizacoesSalv() {
+        OcorrenciaTipoConfiguracaoRepository repository = mock(OcorrenciaTipoConfiguracaoRepository.class);
+        when(repository.existsByIdTipoOcorrencia(1895)).thenReturn(true);
+        OcorrenciaTipoConfiguracaoService service = new OcorrenciaTipoConfiguracaoService(repository);
+
+        service.inicializarTipoAutorizacoesSalv();
+
+        verify(repository, never()).save(any());
     }
 }

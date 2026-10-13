@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface OcorrenciaTipoConfiguracaoRepository extends JpaRepository<OcorrenciaTipoConfiguracao, Long> {
     List<OcorrenciaTipoConfiguracao> findByAtivoTrue();
+    boolean existsByIdTipoOcorrencia(Integer idTipoOcorrencia);
 }

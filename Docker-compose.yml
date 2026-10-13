@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   crm_mosia:
-    image: souzap371/ag_salv_saude:1.0.3
+    image: souzap371/ag_salv_saude:1.0.4
 
     env_file:
       - ./config/crm/crm.env

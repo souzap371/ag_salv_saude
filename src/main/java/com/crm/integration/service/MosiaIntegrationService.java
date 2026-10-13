@@ -146,6 +146,7 @@
 
 package com.crm.integration.service;
 
+import com.crm.integration.enums.MosiaStatusEnum;
 import com.crm.integration.model.MosiaStatusUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -172,6 +173,11 @@ public class MosiaIntegrationService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
+    private final MosiaStatusConfiguracaoService statusConfiguracaoService;
+
+    public MosiaIntegrationService(MosiaStatusConfiguracaoService statusConfiguracaoService) {
+        this.statusConfiguracaoService = statusConfiguracaoService;
+    }
 
     /**
      * Atualiza o status de uma ocorrência no MOSIA.
@@ -312,6 +318,14 @@ public class MosiaIntegrationService {
 
         if (nomeStatus == null || nomeStatus.isBlank()) {
             return null;
+        }
+
+        Integer codigoCatalogado = statusConfiguracaoService.buscarCodigoPorDescricao(nomeStatus);
+        if (codigoCatalogado == null) {
+            codigoCatalogado = MosiaStatusEnum.getCodigoPorNome(nomeStatus);
+        }
+        if (codigoCatalogado != null) {
+            return codigoCatalogado;
         }
 
         switch (nomeStatus.trim().toUpperCase()) {

@@ -17,6 +17,7 @@ import com.crm.integration.repository.OcorrenciaRepository;
 import com.crm.integration.service.MosiaIntegrationService;
 import com.crm.integration.service.OcorrenciaClassificacaoService;
 import com.crm.integration.service.OcorrenciaAnexoService;
+import com.crm.integration.service.MosiaStatusConfiguracaoService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -60,6 +61,9 @@ public class OcorrenciaController {
 
         @Autowired
         private OcorrenciaAnexoService ocorrenciaAnexoService;
+
+        @Autowired
+        private MosiaStatusConfiguracaoService mosiaStatusConfiguracaoService;
 
         // CRIAR OCORRENCIA
         @PostMapping
@@ -145,6 +149,15 @@ public class OcorrenciaController {
                         if (ocorrencia.getDataAtualizacao() == null) ocorrencia.setDataAtualizacao(LocalDateTime.now());
 
                         ocorrenciaClassificacaoService.classificar(ocorrencia);
+                        if (payload.getOcorrencia() != null
+                                        && payload.getOcorrencia().getAtendimento() != null
+                                        && payload.getOcorrencia().getAtendimento().getStatus() != null) {
+                                var statusRecebido = payload.getOcorrencia().getAtendimento().getStatus();
+                                mosiaStatusConfiguracaoService.registrarObservado(
+                                                ocorrencia.getIdTipoOcorrencia(),
+                                                statusRecebido.getId(),
+                                                statusRecebido.getDescricao());
+                        }
                         ocorrenciaAnexoService.importarAnexosDosFormularios(ocorrencia);
 
                         // Salva a ocorrência no banco
@@ -737,6 +750,16 @@ public class OcorrenciaController {
                                                         .getAtendimento()
                                                         .getStatus()
                                                         .getDescricao());
+
+                        Integer idTipoOcorrencia = ocorrenciaRepository.findByProtocolo(protocolo).stream()
+                                        .findFirst()
+                                        .map(Ocorrencia::getIdTipoOcorrencia)
+                                        .filter(id -> id > 0)
+                                        .orElse(null);
+                        mosiaStatusConfiguracaoService.registrarObservado(
+                                        idTipoOcorrencia,
+                                        statusId,
+                                        nomeStatus);
 
                         OffsetDateTime agora = OffsetDateTime.now(
                                         ZoneId.of(

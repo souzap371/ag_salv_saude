@@ -2,7 +2,10 @@ package com.crm.integration.controller;
 
 import com.crm.integration.dto.OcorrenciaTipoConfigRequest;
 import com.crm.integration.dto.OcorrenciaTipoConfigResponse;
+import com.crm.integration.dto.MosiaStatusCatalogoResponse;
+import com.crm.integration.dto.MosiaStatusConfigRequest;
 import com.crm.integration.service.OcorrenciaTipoConfiguracaoService;
+import com.crm.integration.service.MosiaStatusConfiguracaoService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,12 +29,15 @@ import java.util.List;
 public class OcorrenciaTipoConfiguracaoController {
 
     private final OcorrenciaTipoConfiguracaoService service;
+    private final MosiaStatusConfiguracaoService statusService;
     private final String adminToken;
 
     public OcorrenciaTipoConfiguracaoController(
             OcorrenciaTipoConfiguracaoService service,
+            MosiaStatusConfiguracaoService statusService,
             @Value("${painel.admin.token:}") String adminToken) {
         this.service = service;
+        this.statusService = statusService;
         this.adminToken = adminToken;
     }
 
@@ -40,6 +46,46 @@ public class OcorrenciaTipoConfiguracaoController {
             @RequestHeader(value = "X-Admin-Token", required = false) String token) {
         autenticar(token);
         return service.listar();
+    }
+
+    @GetMapping("/status-autorizacoes")
+    public List<MosiaStatusCatalogoResponse> listarStatusAutorizacoes(
+            @RequestHeader(value = "X-Admin-Token", required = false) String token) {
+        autenticar(token);
+        return statusService.listar(1895);
+    }
+
+    @GetMapping("/status")
+    public List<MosiaStatusCatalogoResponse> listarStatus(
+            @RequestHeader(value = "X-Admin-Token", required = false) String token) {
+        autenticar(token);
+        return statusService.listar(null);
+    }
+
+    @PostMapping("/status")
+    public ResponseEntity<MosiaStatusCatalogoResponse> criarStatus(
+            @RequestHeader(value = "X-Admin-Token", required = false) String token,
+            @RequestBody MosiaStatusConfigRequest request) {
+        autenticar(token);
+        return ResponseEntity.status(HttpStatus.CREATED).body(statusService.criar(request));
+    }
+
+    @PutMapping("/status/{id}")
+    public MosiaStatusCatalogoResponse atualizarStatus(
+            @RequestHeader(value = "X-Admin-Token", required = false) String token,
+            @PathVariable Long id,
+            @RequestBody MosiaStatusConfigRequest request) {
+        autenticar(token);
+        return statusService.atualizar(id, request);
+    }
+
+    @DeleteMapping("/status/{id}")
+    public ResponseEntity<Void> excluirStatus(
+            @RequestHeader(value = "X-Admin-Token", required = false) String token,
+            @PathVariable Long id) {
+        autenticar(token);
+        statusService.excluir(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping

@@ -2,6 +2,7 @@ package com.crm.integration.service;
 
 import com.crm.integration.dto.OcorrenciaTipoConfigRequest;
 import com.crm.integration.dto.OcorrenciaTipoConfigResponse;
+import com.crm.integration.enums.TipoNegocioOcorrencia;
 import com.crm.integration.model.OcorrenciaTipoConfiguracao;
 import com.crm.integration.repository.OcorrenciaTipoConfiguracaoRepository;
 import org.springframework.data.domain.Sort;
@@ -55,6 +56,18 @@ public class OcorrenciaTipoConfiguracaoService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Configuração não encontrada."));
         repository.delete(entity);
         repository.flush();
+    }
+
+    @Transactional
+    public void inicializarTipoAutorizacoesSalv() {
+        if (repository.existsByIdTipoOcorrencia(1895)) {
+            return;
+        }
+        OcorrenciaTipoConfiguracao entity = new OcorrenciaTipoConfiguracao();
+        entity.setTipoNegocio(TipoNegocioOcorrencia.SOLICITACAO_AUTORIZACAO);
+        entity.setIdTipoOcorrencia(1895);
+        entity.setAtivo(true);
+        repository.save(entity);
     }
 
     private void validar(OcorrenciaTipoConfigRequest request) {
