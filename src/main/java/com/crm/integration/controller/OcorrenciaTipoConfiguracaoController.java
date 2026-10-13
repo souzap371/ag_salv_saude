@@ -23,8 +23,10 @@ import org.springframework.web.server.ResponseStatusException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.List;
+import io.swagger.v3.oas.annotations.Hidden;
 
 @RestController
+@Hidden
 @RequestMapping("/admin/ocorrencia-tipos")
 public class OcorrenciaTipoConfiguracaoController {
 

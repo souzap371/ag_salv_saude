@@ -7,8 +7,10 @@ import com.crm.integration.util.TokenUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @RestController
+@ConditionalOnProperty(name = "features.legacy-endpoints.enabled", havingValue = "true")
 @RequestMapping("/clientes")
 public class SessaoController {
 

@@ -21,11 +21,33 @@
     dialog{width:min(920px,calc(100% - 28px));max-height:90vh;padding:0;border:1px solid var(--line);border-radius:22px;color:var(--text);background:#0a1b36;box-shadow:0 28px 100px rgba(0,0,0,.7)}dialog::backdrop{background:rgba(1,7,17,.78);backdrop-filter:blur(5px)}.dialog-body{padding:25px}.dialog-head{display:flex;align-items:start;justify-content:space-between;gap:18px;margin-bottom:20px}.dialog-head h2{margin-top:4px}.icon-button{border:0;color:var(--muted);background:transparent;font-size:1.7rem;cursor:pointer}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}.field label{color:var(--muted);font-size:.78rem;font-weight:750}.field input,.field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--text);background:#07152b;font:inherit}.check{display:flex;align-items:center;gap:9px;margin:14px 0}.check input{width:18px;height:18px}.notice{min-height:22px;margin:12px 0;color:var(--muted);font-size:.85rem}.notice.error{color:#ff9cad}.config-list{display:grid;gap:10px;margin-top:22px}.config-row{display:grid;grid-template-columns:minmax(180px,1.3fr) repeat(3,minmax(80px,.7fr)) auto;align-items:center;gap:10px;padding:13px;border:1px solid var(--line);border-radius:13px;background:rgba(5,18,39,.62)}.config-row small{display:block;color:var(--muted)}.pill{display:inline-block;margin:5px 5px 0 0;padding:3px 7px;border-radius:99px;background:rgba(32,217,154,.14);color:var(--green);font-size:.7rem;font-weight:800}.pill.off{background:rgba(255,100,124,.12);color:#ff9cad}.pill.source{background:rgba(56,216,232,.1);color:var(--cyan)}.row-actions{display:flex;gap:7px}.row-actions .button{padding:8px 10px}.divider{height:1px;margin:22px 0;background:var(--line)}.catalog-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:12px}.catalog-head h3{margin:0}.catalog-head span{color:var(--muted);font-size:.8rem}.status-list{display:grid;gap:8px;margin-top:18px}.status-row{display:grid;grid-template-columns:65px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 12px;border:1px solid rgba(129,172,225,.16);border-radius:11px;background:rgba(5,18,39,.62)}.status-id{color:var(--cyan);font-weight:850;font-family:ui-monospace,Consolas,monospace}.status-name{font-size:.86rem;line-height:1.4}.status-name small{display:block;color:var(--muted);margin-top:3px}
     @media(max-width:760px){.metrics,.grid,.form-grid,.status-list{grid-template-columns:1fr}.section-head,footer,.catalog-head{align-items:stretch;flex-direction:column}.actions>.button{flex:1}.field.full{grid-column:auto}.config-row{grid-template-columns:1fr 1fr}.config-row>div:first-child,.row-actions{grid-column:1/-1}.row-actions .button{width:auto}}
   </style>
+  <style>
+    :root{--bg:#f4f8f8;--panel:#fff;--line:#d8e6e7;--text:#263746;--muted:#687b83;--cyan:#35b0b9;--green:#20b989;--yellow:#f2b84b;--red:#df5c69;--navy:#08727a}
+    body{color:var(--text);background:linear-gradient(150deg,#fff 0,#f5f9f9 52%,#eaf6f6 100%)}
+    body:before{opacity:.45;background-image:radial-gradient(circle at 88% 2%,rgba(110,195,195,.24),transparent 26%),radial-gradient(circle at 5% 92%,rgba(53,176,185,.12),transparent 25%);background-size:auto}
+    .page{width:min(1180px,calc(100% - 32px));padding:24px 0 34px}
+    .brandbar{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:20px;padding:15px 22px;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.94);box-shadow:0 16px 45px rgba(30,93,97,.09)}
+    .brandbar img{display:block;width:190px;height:auto}.brand-context{text-align:right}.brand-context strong{display:block;color:var(--navy);font-size:.94rem}.brand-context span{color:var(--muted);font-size:.78rem}
+    .hero,.panel{border-color:var(--line);background:#fff;box-shadow:0 18px 55px rgba(37,90,94,.1);backdrop-filter:none}
+    .hero{padding:clamp(30px,5vw,54px);background:linear-gradient(125deg,#fff 0,#f8ffff 65%,#daf1f1 100%)}.hero:after{right:-110px;top:-190px;background:rgba(53,176,185,.2)}
+    .eyebrow{color:var(--cyan)}h1{color:#0b6f76}.summary{color:#4b6269}
+    .metrics{gap:16px}.metric{border-color:var(--line);background:rgba(255,255,255,.86);box-shadow:0 10px 30px rgba(37,90,94,.07)}.metric strong{color:#0b6f76}
+    .button{border-color:#9dd5d8;color:#08727a;background:#edfafa}.button:hover{background:#dff5f5}.button.primary{color:#fff;background:#35b0b9;border-color:#35b0b9}.button.danger{color:#b94351;border-color:#efb5bc;background:#fff4f5}
+    .panel h3,h2{color:#0a7077}.endpoint{border-top-color:#e5eeee}.method{color:#fff;background:#35b0b9}.post{background:#20b989}.put,.patch{background:#eaaa32}.delete{background:#df5c69}.path,.empty,footer{color:var(--muted)}
+    dialog{color:var(--text);background:#fff;border-color:#cce2e3;box-shadow:0 28px 100px rgba(20,63,67,.28)}dialog::backdrop{background:rgba(14,43,49,.55)}.icon-button{color:#60777d}
+    .field input,.field select{color:#263746;background:#f9fcfc;border-color:#cbdfe1}.config-row,.status-row{background:#fbfefe;border-color:#d9e8e9}.divider{background:#d9e8e9}.pill{background:#e4f8f1}.pill.source{background:#e5f7f8;color:#08727a}
+    footer{align-items:center;padding:18px 22px;border-top:1px solid var(--line)}footer a{color:#08727a;font-weight:750}.footer-brand{display:flex;align-items:center;gap:12px}.footer-brand img{width:112px;height:auto}
+    @media(max-width:620px){.brandbar{align-items:flex-start;flex-direction:column}.brand-context{text-align:left}.brandbar img{width:160px}}
+  </style>
 </head>
 <body data-health="checking">
 <main class="page">
+  <header class="brandbar">
+    <img src="./assets/agilecare-logo.svg" alt="AgileCare">
+    <div class="brand-context"><strong>Integração SALV Saúde + Mosia</strong><span>Monitoramento e administração operacional</span></div>
+  </header>
   <section class="hero" aria-labelledby="title">
-    <p class="eyebrow">SALV Saude · Monitoramento</p>
+    <p class="eyebrow">AgileCare · SALV Saúde · Monitoramento</p>
     <h1 id="title">Verificando a API...</h1>
     <p class="summary" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="summary">Consultando a aplicacao e suas dependencias.</span></p>
   </section>
@@ -34,9 +56,9 @@
     <article class="metric"><small>Banco de dados</small><strong id="db-status">VERIFICANDO</strong></article>
     <article class="metric"><small>Rotas registradas</small><strong id="route-count">-</strong></article>
   </section>
-  <div class="section-head"><div><p class="eyebrow">Contrato publico</p><h2>Endpoints disponiveis</h2></div><div class="actions"><button class="button" id="config-open" type="button">Configurar IDs do Mosia</button><button class="button" id="refresh" type="button">Verificar agora</button></div></div>
+  <div class="section-head"><div><p class="eyebrow">Contrato publico</p><h2>Endpoints disponiveis</h2></div><div class="actions"><a class="button" href="./documentacao.html">Documentação do sistema</a><button class="button" id="config-open" type="button">Configurar IDs do Mosia</button><button class="button" id="refresh" type="button">Verificar agora</button></div></div>
   <section class="grid" id="routes" aria-live="polite"><div class="empty">Carregando o contrato OpenAPI...</div></section>
-  <footer><span id="last-check">Ultima verificacao: aguardando</span><a href="./swagger-ui/index.html">Abrir documentacao Swagger</a></footer>
+  <footer><span class="footer-brand"><img src="./assets/agilecare-logo.svg" alt="AgileCare"><span id="last-check">Ultima verificacao: aguardando</span></span><a href="./swagger-ui/index.html">Abrir documentacao Swagger</a></footer>
 </main>
 <dialog id="config-dialog" aria-labelledby="config-title">
   <div class="dialog-body">
