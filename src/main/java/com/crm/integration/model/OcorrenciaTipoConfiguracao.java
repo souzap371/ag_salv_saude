@@ -1,6 +1,5 @@
 package com.crm.integration.model;
 
-import com.crm.integration.enums.TipoNegocioOcorrencia;
 import jakarta.persistence.*;
 
 @Entity
@@ -11,9 +10,8 @@ public class OcorrenciaTipoConfiguracao {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_negocio", nullable = false, length = 60)
-    private TipoNegocioOcorrencia tipoNegocio;
+    @Column(name = "tipo_negocio", nullable = false, length = 200)
+    private String tipoNegocio;
 
     @Column(name = "codigo_funcionalidade", length = 100)
     private String idFuncionalidade;
@@ -28,8 +26,8 @@ public class OcorrenciaTipoConfiguracao {
     private boolean ativo = true;
 
     public Long getId() { return id; }
-    public TipoNegocioOcorrencia getTipoNegocio() { return tipoNegocio; }
-    public void setTipoNegocio(TipoNegocioOcorrencia tipoNegocio) { this.tipoNegocio = tipoNegocio; }
+    public String getTipoNegocio() { return tipoNegocio; }
+    public void setTipoNegocio(String tipoNegocio) { this.tipoNegocio = tipoNegocio; }
     public String getIdFuncionalidade() { return idFuncionalidade; }
     public void setIdFuncionalidade(String idFuncionalidade) { this.idFuncionalidade = idFuncionalidade; }
     public Integer getIdTipoOcorrencia() { return idTipoOcorrencia; }

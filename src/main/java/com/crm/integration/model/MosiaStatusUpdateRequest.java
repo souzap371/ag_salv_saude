@@ -8,6 +8,7 @@ public class MosiaStatusUpdateRequest {
     private Boolean manterAtribuicao;
     private String chaveUnicaSolicitante;
     private String protocolo;
+    private Long numeroGuia;
 
 
 
@@ -32,4 +33,6 @@ public class MosiaStatusUpdateRequest {
 
     public String getProtocolo() { return protocolo; }
     public void setProtocolo(String protocolo) { this.protocolo = protocolo; }
+    public Long getNumeroGuia() { return numeroGuia; }
+    public void setNumeroGuia(Long numeroGuia) { this.numeroGuia = numeroGuia; }
 }

@@ -32,6 +32,9 @@ public class AgMensApp {
     @Column(name = "IDREGISTRO")
     private String idRegistro;
 
+    @Column(name = "NNUMEGUIA")
+    private Long numeroGuia;
+
     // Getters e Setters
     public Long getId() {
         return id;
@@ -96,4 +99,7 @@ public class AgMensApp {
     public void setIdRegistro(String idRegistro) {
         this.idRegistro = idRegistro;
     }
+
+    public Long getNumeroGuia() { return numeroGuia; }
+    public void setNumeroGuia(Long numeroGuia) { this.numeroGuia = numeroGuia; }
 }

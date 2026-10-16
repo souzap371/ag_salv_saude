@@ -110,6 +110,15 @@ public class MosiaStatusConfiguracaoService {
                 .orElse(null);
     }
 
+    @Transactional(readOnly = true)
+    public String buscarDescricao(Integer idTipoOcorrencia, Integer idStatus) {
+        if (idTipoOcorrencia == null || idTipoOcorrencia <= 0 || idStatus == null || idStatus <= 0) return null;
+        return repository.findByIdStatusMosiaAndIdTipoOcorrenciaMosia(idStatus, idTipoOcorrencia)
+                .filter(MosiaStatusConfiguracao::isAtivo)
+                .map(MosiaStatusConfiguracao::getDescricao)
+                .orElse(null);
+    }
+
     @Transactional
     public void inicializarCatalogoAutorizacoes() {
         for (MosiaStatusEnum status : MosiaStatusEnum.statusAutorizacoesSalv()) {

@@ -27,9 +27,9 @@ class OcorrenciaTipoConfiguracaoServiceTests {
         OcorrenciaTipoConfiguracaoService service = new OcorrenciaTipoConfiguracaoService(repository);
 
         var response = service.criar(new OcorrenciaTipoConfigRequest(
-                TipoNegocioOcorrencia.ATUALIZACAO_CADASTRAL, "9999.00069", 128, 173, true));
+                TipoNegocioOcorrencia.ATUALIZACAO_CADASTRAL.name(), "9999.00069", 128, 173, true));
 
-        assertEquals(TipoNegocioOcorrencia.ATUALIZACAO_CADASTRAL, response.tipoNegocio());
+        assertEquals(TipoNegocioOcorrencia.ATUALIZACAO_CADASTRAL.name(), response.tipoNegocio());
         assertEquals("9999.00069", response.idFuncionalidade());
         verify(repository).saveAndFlush(any(OcorrenciaTipoConfiguracao.class));
     }
@@ -41,7 +41,7 @@ class OcorrenciaTipoConfiguracaoServiceTests {
 
         ResponseStatusException erro = assertThrows(ResponseStatusException.class, () ->
                 service.criar(new OcorrenciaTipoConfigRequest(
-                        TipoNegocioOcorrencia.ATUALIZACAO_CADASTRAL, null, null, null, true)));
+                        TipoNegocioOcorrencia.ATUALIZACAO_CADASTRAL.name(), null, null, null, true)));
 
         assertEquals(400, erro.getStatusCode().value());
     }
@@ -54,7 +54,7 @@ class OcorrenciaTipoConfiguracaoServiceTests {
         OcorrenciaTipoConfiguracaoService service = new OcorrenciaTipoConfiguracaoService(repository);
 
         var response = service.criar(new OcorrenciaTipoConfigRequest(
-                TipoNegocioOcorrencia.SOLICITACAO_AUTORIZACAO,
+                TipoNegocioOcorrencia.SOLICITACAO_AUTORIZACAO.name(),
                 " 9999.00069 ", 1895, null, true));
 
         assertEquals("9999.00069", response.idFuncionalidade());
@@ -63,7 +63,7 @@ class OcorrenciaTipoConfiguracaoServiceTests {
     @Test
     void recusaAssociacaoDuplicada() {
         OcorrenciaTipoConfiguracao existente = new OcorrenciaTipoConfiguracao();
-        existente.setTipoNegocio(TipoNegocioOcorrencia.REEMBOLSO);
+        existente.setTipoNegocio(TipoNegocioOcorrencia.REEMBOLSO.name());
         existente.setIdAssunto(99);
         OcorrenciaTipoConfiguracaoRepository repository = mock(OcorrenciaTipoConfiguracaoRepository.class);
         when(repository.findAll()).thenReturn(List.of(existente));
@@ -71,7 +71,7 @@ class OcorrenciaTipoConfiguracaoServiceTests {
 
         ResponseStatusException erro = assertThrows(ResponseStatusException.class, () ->
                 service.criar(new OcorrenciaTipoConfigRequest(
-                        TipoNegocioOcorrencia.REEMBOLSO, null, null, 99, true)));
+                        TipoNegocioOcorrencia.REEMBOLSO.name(), null, null, 99, true)));
 
         assertEquals(409, erro.getStatusCode().value());
     }
@@ -86,7 +86,7 @@ class OcorrenciaTipoConfiguracaoServiceTests {
 
         var captor = org.mockito.ArgumentCaptor.forClass(OcorrenciaTipoConfiguracao.class);
         verify(repository).save(captor.capture());
-        assertEquals(TipoNegocioOcorrencia.SOLICITACAO_AUTORIZACAO, captor.getValue().getTipoNegocio());
+        assertEquals(TipoNegocioOcorrencia.SOLICITACAO_AUTORIZACAO.name(), captor.getValue().getTipoNegocio());
         assertEquals(1895, captor.getValue().getIdTipoOcorrencia());
         assertEquals(true, captor.getValue().isAtivo());
     }

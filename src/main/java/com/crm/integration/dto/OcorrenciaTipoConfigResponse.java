@@ -1,10 +1,8 @@
 package com.crm.integration.dto;
 
-import com.crm.integration.enums.TipoNegocioOcorrencia;
-
 public record OcorrenciaTipoConfigResponse(
         Long id,
-        TipoNegocioOcorrencia tipoNegocio,
+        String tipoNegocio,
         String idFuncionalidade,
         Integer idTipoOcorrencia,
         Integer idAssunto,

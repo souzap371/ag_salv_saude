@@ -179,6 +179,31 @@ public class MensageriaService {
         return entity;
     }
 
+    /** Registra a mensagem para o scheduler, sem realizar envio dentro da transação atual. */
+    public AgMensApp enfileirarMensagem(
+            MensagemRequest request,
+            String idFuncionalidade,
+            String idRegistro) {
+        return enfileirarMensagem(request, idFuncionalidade, idRegistro, null);
+    }
+
+    public AgMensApp enfileirarMensagem(
+            MensagemRequest request,
+            String idFuncionalidade,
+            String idRegistro,
+            Long numeroGuia) {
+        validarRequest(request);
+        AgMensApp entity = new AgMensApp();
+        entity.setChaveUnica(request.getChaveUnica().trim());
+        entity.setMensagem(request.getMsg().trim());
+        entity.setDtInclusao(LocalDateTime.now(ZONE_ID));
+        entity.setIdFuncionalidade(idFuncionalidade);
+        entity.setIdRegistro(idRegistro);
+        entity.setNumeroGuia(numeroGuia);
+        entity.setProc("N");
+        return repository.save(entity);
+    }
+
     public boolean enviarParaMosia(MensagemRequest request) {
 
         if (!requestValido(request)) {

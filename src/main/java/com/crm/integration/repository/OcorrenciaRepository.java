@@ -6,11 +6,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OcorrenciaRepository extends JpaRepository<Ocorrencia, Long> {
     // Optional<Ocorrencia> findByProtocolo(String protocolo);
     List<Ocorrencia> findByProtocolo(String protocolo);
+    Optional<Ocorrencia> findTopByProtocoloOrderByDataAtualizacaoDescIdDesc(String protocolo);
 
     // Busca os 10 últimos registros ordenados pela data de registro de forma
     // decrescente.

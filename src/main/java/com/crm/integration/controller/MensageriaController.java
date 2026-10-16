@@ -7,6 +7,7 @@ import com.crm.integration.model.OcorrenciaResponse;
 import com.crm.integration.model.Ocorrencia;
 import com.crm.integration.repository.OcorrenciaRepository;
 import com.crm.integration.service.MensageriaService;
+import com.crm.integration.service.OcorrenciaAtualizacaoService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,7 @@ import java.util.List;
 public class MensageriaController {
 
     private final MensageriaService mensageriaService;
+    private final OcorrenciaAtualizacaoService ocorrenciaAtualizacaoService;
 
     @Autowired
     private OcorrenciaRepository ocorrenciaRepository;
@@ -28,8 +30,11 @@ public class MensageriaController {
     @Value("${mensageria.token}")
     private String mensageriaToken;
 
-    public MensageriaController(MensageriaService mensageriaService) {
+    public MensageriaController(
+            MensageriaService mensageriaService,
+            OcorrenciaAtualizacaoService ocorrenciaAtualizacaoService) {
         this.mensageriaService = mensageriaService;
+        this.ocorrenciaAtualizacaoService = ocorrenciaAtualizacaoService;
     }
 
     // ---------------------------------------------------------
@@ -84,46 +89,33 @@ public class MensageriaController {
                     ));
         }
 
-        // 🔥 CORREÇÃO: findByProtocolo retorna List<Ocorrencia>
-        List<Ocorrencia> lista = ocorrenciaRepository.findByProtocolo(protocolo);
-
-        if (lista.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new OcorrenciaResponse(
-                            false,
-                            "Ocorrência não encontrada.",
-                            404,
-                            System.currentTimeMillis(),
-                            null
-                    ));
+        if (request == null || request.getStatus() == null || request.getStatus().isBlank()) {
+            return ResponseEntity.badRequest().body(new OcorrenciaResponse(
+                    false, "O status é obrigatório.", 400, System.currentTimeMillis(), null));
         }
-
-        Ocorrencia ocorrencia = lista.get(0);
-
-        // Atualiza rascunho se enviado
-        if (request.getRascunho() != null) {
-            ocorrencia.setRascunho(request.getRascunho());
+        try {
+            var resultado = ocorrenciaAtualizacaoService.atualizarStatus(
+                    protocolo, null, request.getStatus(), null);
+            if (request.getRascunho() != null) {
+                resultado.ocorrencia().setRascunho(request.getRascunho());
+                ocorrenciaRepository.save(resultado.ocorrencia());
+            }
+            int codigo = resultado.sincronizadoMosia() ? 200 : 207;
+            return ResponseEntity.status(codigo).body(new OcorrenciaResponse(
+                    true,
+                    resultado.sincronizadoMosia()
+                            ? "Status atualizado, sincronizado e mensagem registrada."
+                            : "Status atualizado e mensagem registrada; sincronização com o MOSIA pendente.",
+                    codigo,
+                    System.currentTimeMillis(),
+                    resultado.ocorrencia()));
+        } catch (OcorrenciaAtualizacaoService.OcorrenciaNaoEncontradaException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new OcorrenciaResponse(
+                    false, e.getMessage(), 404, System.currentTimeMillis(), null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new OcorrenciaResponse(
+                    false, e.getMessage(), 400, System.currentTimeMillis(), null));
         }
-
-        // Atualiza status se enviado
-        if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-            ocorrencia.setStatus(request.getStatus());
-        }
-
-        // Atualiza data
-        ocorrencia.setDataAtualizacao(LocalDateTime.now());
-
-        Ocorrencia ocorrenciaAtualizada = ocorrenciaRepository.save(ocorrencia);
-
-        return ResponseEntity.ok(
-                new OcorrenciaResponse(
-                        true,
-                        "Status atualizado via mensageria com sucesso.",
-                        200,
-                        System.currentTimeMillis(),
-                        ocorrenciaAtualizada
-                )
-        );
     }
 
     // ---------------------------------------------------------

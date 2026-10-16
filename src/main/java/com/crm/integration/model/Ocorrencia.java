@@ -10,12 +10,8 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
-
-import com.crm.integration.enums.TipoNegocioOcorrencia;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,9 +38,8 @@ public class Ocorrencia {
 
     private String status;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_negocio", nullable = false, length = 60)
-    private TipoNegocioOcorrencia tipoNegocio = TipoNegocioOcorrencia.OUTRA;
+    @Column(name = "tipo_negocio", nullable = false, length = 200)
+    private String tipoNegocio = "OUTRA";
 
     @OneToMany(mappedBy = "ocorrencia", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Anotacao> anotacoes;
@@ -171,9 +166,9 @@ public class Ocorrencia {
         this.status = status;
     }
 
-    public TipoNegocioOcorrencia getTipoNegocio() { return tipoNegocio; }
-    public void setTipoNegocio(TipoNegocioOcorrencia tipoNegocio) {
-        this.tipoNegocio = tipoNegocio == null ? TipoNegocioOcorrencia.OUTRA : tipoNegocio;
+    public String getTipoNegocio() { return tipoNegocio; }
+    public void setTipoNegocio(String tipoNegocio) {
+        this.tipoNegocio = tipoNegocio == null || tipoNegocio.isBlank() ? "OUTRA" : tipoNegocio.trim();
     }
 
     public Solicitante getSolicitante() {

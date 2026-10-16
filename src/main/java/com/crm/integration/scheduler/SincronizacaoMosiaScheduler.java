@@ -62,6 +62,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
@@ -69,6 +70,7 @@ import java.time.ZoneId;
 import java.util.List;
 
 @Component
+@ConditionalOnProperty(name = "features.legacy-autorizacao-sync.enabled", havingValue = "true")
 public class SincronizacaoMosiaScheduler {
 
         private static final Logger log = LoggerFactory.getLogger(

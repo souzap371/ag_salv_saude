@@ -64,15 +64,19 @@ public class OcorrenciaTipoConfiguracaoService {
             return;
         }
         OcorrenciaTipoConfiguracao entity = new OcorrenciaTipoConfiguracao();
-        entity.setTipoNegocio(TipoNegocioOcorrencia.SOLICITACAO_AUTORIZACAO);
+        entity.setTipoNegocio(TipoNegocioOcorrencia.SOLICITACAO_AUTORIZACAO.name());
         entity.setIdTipoOcorrencia(1895);
         entity.setAtivo(true);
         repository.save(entity);
     }
 
     private void validar(OcorrenciaTipoConfigRequest request) {
-        if (request == null || request.tipoNegocio() == null) {
+        if (request == null || request.tipoNegocio() == null || request.tipoNegocio().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O tipo de ocorrência é obrigatório.");
+        }
+        if (request.tipoNegocio().trim().length() > 200) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "O tipo de ocorrência deve possuir no máximo 200 caracteres.");
         }
         validarCodigoFuncionalidade(request.idFuncionalidade());
         validarId(request.idTipoOcorrencia(), "ID do tipo de ocorrência");
@@ -107,7 +111,7 @@ public class OcorrenciaTipoConfiguracaoService {
         String codigoNormalizado = normalizarCodigo(request.idFuncionalidade());
         boolean duplicada = repository.findAll().stream().anyMatch(config ->
                 (idAtual == null || !Objects.equals(config.getId(), idAtual))
-                        && config.getTipoNegocio() == request.tipoNegocio()
+                        && Objects.equals(config.getTipoNegocio(), request.tipoNegocio().trim())
                         && Objects.equals(config.getIdFuncionalidade(), codigoNormalizado)
                         && Objects.equals(config.getIdTipoOcorrencia(), request.idTipoOcorrencia())
                         && Objects.equals(config.getIdAssunto(), request.idAssunto()));
@@ -117,7 +121,7 @@ public class OcorrenciaTipoConfiguracaoService {
     }
 
     private void copiar(OcorrenciaTipoConfigRequest request, OcorrenciaTipoConfiguracao entity) {
-        entity.setTipoNegocio(request.tipoNegocio());
+        entity.setTipoNegocio(request.tipoNegocio().trim());
         entity.setIdFuncionalidade(normalizarCodigo(request.idFuncionalidade()));
         entity.setIdTipoOcorrencia(request.idTipoOcorrencia());
         entity.setIdAssunto(request.idAssunto());

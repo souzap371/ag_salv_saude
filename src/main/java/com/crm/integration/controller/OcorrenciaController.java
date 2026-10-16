@@ -1,25 +1,22 @@
 package com.crm.integration.controller;
 
 import com.crm.integration.dto.MosiaRequestDTO;
-import com.crm.integration.enums.MosiaStatusEnum;
 import com.crm.integration.mapper.OcorrenciaMapper;
 import com.crm.integration.model.AlterarDatasRequest;
 import com.crm.integration.model.Anotacao;
 import com.crm.integration.model.AnotacaoRequest;
-import com.crm.integration.model.AutorizacaoSolicitada;
 import com.crm.integration.model.Beneficiario;
 import com.crm.integration.model.MosiaCallbackRequest;
 import com.crm.integration.model.MosiaStatusUpdateRequest;
 import com.crm.integration.model.Ocorrencia;
 import com.crm.integration.model.OcorrenciaResponse;
 import com.crm.integration.model.UltimosProtocolosResponse;
-import com.crm.integration.repository.AutorizacaoRepository;
 import com.crm.integration.repository.BeneficiarioRepository;
 import com.crm.integration.repository.OcorrenciaRepository;
-import com.crm.integration.service.MosiaIntegrationService;
 import com.crm.integration.service.OcorrenciaClassificacaoService;
 import com.crm.integration.service.OcorrenciaAnexoService;
 import com.crm.integration.service.MosiaStatusConfiguracaoService;
+import com.crm.integration.service.OcorrenciaAtualizacaoService;
 import jakarta.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -36,7 +33,6 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.ZoneId;
 
 @RestController
@@ -62,6 +58,9 @@ public class OcorrenciaController {
 
         @Autowired
         private MosiaStatusConfiguracaoService mosiaStatusConfiguracaoService;
+
+        @Autowired
+        private OcorrenciaAtualizacaoService ocorrenciaAtualizacaoService;
 
         // CRIAR OCORRENCIA
         @PostMapping
@@ -126,7 +125,7 @@ public class OcorrenciaController {
                         if (ocorrencia.getDataRegistro() == null) ocorrencia.setDataRegistro(LocalDateTime.now());
                         if (ocorrencia.getDataAtualizacao() == null) ocorrencia.setDataAtualizacao(LocalDateTime.now());
 
-                        ocorrenciaClassificacaoService.classificar(ocorrencia);
+                        ocorrenciaClassificacaoService.classificarERegistrar(ocorrencia, payload);
                         if (payload.getOcorrencia() != null
                                         && payload.getOcorrencia().getAtendimento() != null
                                         && payload.getOcorrencia().getAtendimento().getStatus() != null) {
@@ -226,12 +225,6 @@ public class OcorrenciaController {
         }
 
         // ATUALIZAR STATUS DA OCORRÊNCIA
-        @Autowired
-        private AutorizacaoRepository autorizacaoRepository;
-
-        @Autowired
-        private MosiaIntegrationService mosiaIntegrationService;
-
         // @Transactional
         // @PutMapping("/{protocolo}/status")
         // public ResponseEntity<OcorrenciaResponse> atualizarStatus(
@@ -450,90 +443,27 @@ public class OcorrenciaController {
                                                                         null));
                 }
 
-                var autorizacaoOpt = autorizacaoRepository
-                                .findTopByProtocoloOrderByCreatedAtDesc(
-                                                protocoloNormalizado);
-
-                if (autorizacaoOpt.isEmpty()) {
-                        return ResponseEntity
-                                        .status(HttpStatus.NOT_FOUND)
-                                        .body(
-                                                        new OcorrenciaResponse(
-                                                                        false,
-                                                                        "Autorização não encontrada.",
-                                                                        404,
-                                                                        System.currentTimeMillis(),
-                                                                        null));
-                }
-
-                AutorizacaoSolicitada autorizacao = autorizacaoOpt.get();
-
                 Integer statusId = request.getIdNovoStatus();
-
-                String nomeStatus = MosiaStatusEnum
-                                .getNomePorCodigo(statusId);
-
-                if (nomeStatus == null
-                                || nomeStatus.isBlank()) {
-
-                        nomeStatus = normalizar(
-                                        request.getTextoDesfecho());
+                try {
+                        var resultado = ocorrenciaAtualizacaoService.atualizarStatus(
+                                        protocoloNormalizado,
+                                        statusId,
+                                        request.getTextoDesfecho(),
+                                        request.getChaveUnicaSolicitante(),
+                                        request.getNumeroGuia());
+                        int codigo = resultado.sincronizadoMosia() ? 200 : 207;
+                        String mensagem = resultado.sincronizadoMosia()
+                                        ? "Status sincronizado com o MOSIA e mensagem registrada para envio."
+                                        : "Status atualizado e mensagem registrada, mas a sincronização com o MOSIA falhou.";
+                        return ResponseEntity.status(codigo).body(new OcorrenciaResponse(
+                                        true, mensagem, codigo, System.currentTimeMillis(), resultado.ocorrencia()));
+                } catch (OcorrenciaAtualizacaoService.OcorrenciaNaoEncontradaException e) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new OcorrenciaResponse(
+                                        false, e.getMessage(), 404, System.currentTimeMillis(), null));
+                } catch (IllegalArgumentException e) {
+                        return ResponseEntity.badRequest().body(new OcorrenciaResponse(
+                                        false, e.getMessage(), 400, System.currentTimeMillis(), null));
                 }
-
-                if (nomeStatus == null) {
-                        nomeStatus = String.valueOf(statusId);
-                }
-
-                String chaveUnica = autorizacao.getChaveUnica();
-
-                boolean enviado = mosiaIntegrationService
-                                .atualizarStatusNoMosia(
-                                                protocoloNormalizado,
-                                                statusId,
-                                                nomeStatus,
-                                                chaveUnica);
-
-                OffsetDateTime agora = OffsetDateTime.now(
-                                ZoneId.of(
-                                                "America/Sao_Paulo"));
-
-                autorizacao.setStatus(nomeStatus);
-                autorizacao.setStatusId(
-                                String.valueOf(statusId));
-
-                autorizacao.setUpdatedAt(agora);
-
-                if (enviado) {
-                        autorizacao.setSincronizadoMosia("S");
-                        autorizacao.setUltimaSincronizacao(agora);
-
-                        autorizacaoRepository
-                                        .marcarProtocoloComoSincronizado(
-                                                        protocoloNormalizado,
-                                                        agora);
-
-                } else {
-                        autorizacao.setSincronizadoMosia("N");
-                }
-
-                autorizacaoRepository
-                                .saveAndFlush(autorizacao);
-
-                String mensagem = enviado
-                                ? "Status atualizado e sincronizado com o MOSIA."
-                                : "Status atualizado, mas ficou pendente de sincronização.";
-
-                int codigo = enviado ? 200 : 207;
-
-                return ResponseEntity
-                                .status(codigo)
-                                .body(
-                                                new OcorrenciaResponse(
-                                                                true,
-                                                                mensagem,
-                                                                codigo,
-                                                                System.currentTimeMillis(),
-                                                                null));
         }
 
         // @PostMapping("/status/callback")
@@ -742,10 +672,6 @@ public class OcorrenciaController {
                                         statusId,
                                         nomeStatus);
 
-                        OffsetDateTime agora = OffsetDateTime.now(
-                                        ZoneId.of(
-                                                        "America/Sao_Paulo"));
-
                         log.info(
                                         "[MOSIA CALLBACK] Processando. "
                                                         + "protocolo={} statusId={} status={} chave={}",
@@ -754,70 +680,15 @@ public class OcorrenciaController {
                                         nomeStatus,
                                         mascararChave(chaveUnica));
 
-                        var autorizacaoOpt = autorizacaoRepository
-                                        .findTopByProtocoloOrderByCreatedAtDesc(
-                                                        protocolo);
-
-                        AutorizacaoSolicitada autorizacao;
-
-                        if (autorizacaoOpt.isPresent()) {
-                                autorizacao = autorizacaoOpt.get();
-
-                        } else {
-                                autorizacao = new AutorizacaoSolicitada();
-
-                                autorizacao.setProtocolo(
-                                                protocolo);
-
-                                autorizacao.setCreatedAt(
-                                                agora);
-                        }
-
-                        if (chaveUnica != null
-                                        && !chaveUnica.isBlank()) {
-
-                                autorizacao.setChaveUnica(
-                                                chaveUnica);
-                        }
-
-                        autorizacao.setStatus(
-                                        nomeStatus);
-
-                        autorizacao.setStatusId(
-                                        statusId);
-
-                        /*
-                         * O status veio da própria Mosia.
-                         * Nunca deve entrar novamente na fila de envio.
-                         */
-                        autorizacao.setSincronizadoMosia(
-                                        "S");
-
-                        autorizacao.setUltimaSincronizacao(
-                                        agora);
-
-                        autorizacao.setUpdatedAt(
-                                        agora);
-
-                        autorizacaoRepository
-                                        .saveAndFlush(
-                                                        autorizacao);
-
-                        /*
-                         * Finaliza todas as versões pendentes desse protocolo.
-                         */
-                        int registrosAtualizados = autorizacaoRepository
-                                        .marcarProtocoloComoSincronizado(
-                                                        protocolo,
-                                                        agora);
+                        ocorrenciaAtualizacaoService.registrarStatusRecebidoDoMosia(
+                                        protocolo, statusId, nomeStatus);
 
                         log.info(
                                         "[MOSIA CALLBACK] Processado com sucesso. "
                                                         + "protocolo={} statusId={} "
-                                                        + "registrosSincronizados={}",
+                                                        + "origem=MOSIA",
                                         protocolo,
-                                        statusId,
-                                        registrosAtualizados);
+                                        statusId);
 
                         return ResponseEntity
                                         .ok()

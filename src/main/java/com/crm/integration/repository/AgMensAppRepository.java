@@ -39,4 +39,6 @@ public interface AgMensAppRepository
             LocalDateTime dataInicial,
             Pageable pageable
     );
+
+    boolean existsByIdRegistro(String idRegistro);
 }
