@@ -16,6 +16,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Lob;
 
@@ -26,7 +27,11 @@ public class Formulario {
     private static final ObjectMapper JSON = new ObjectMapper();
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_formularios")
+    @SequenceGenerator(
+            name = "seq_formularios",
+            sequenceName = "SEQ_FORMULARIOS",
+            allocationSize = 1)
     private Long id;
 
     private String idForm;

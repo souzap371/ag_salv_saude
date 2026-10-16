@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
 import jakarta.persistence.Enumerated;
@@ -30,7 +31,8 @@ public class Ocorrencia {
 
     private String protocolo;
     private int idTipoOcorrencia;
-    private Integer idFuncionalidade;
+      @Column(name = "codigo_funcionalidade", length = 100)
+      private String idFuncionalidade;
     private String numeroContrato;
     private Integer idAssunto;
     private boolean rascunho;
@@ -50,7 +52,7 @@ public class Ocorrencia {
     @OneToOne(cascade = CascadeType.ALL)
     private Solicitante solicitante;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private Beneficiario beneficiario;
 
     @OneToMany(cascade = CascadeType.ALL)
@@ -97,11 +99,11 @@ public class Ocorrencia {
         this.idTipoOcorrencia = idTipoOcorrencia;
     }
 
-    public Integer getIdFuncionalidade() {
+      public String getIdFuncionalidade() {
         return idFuncionalidade;
     }
 
-    public void setIdFuncionalidade(Integer idFuncionalidade) {
+      public void setIdFuncionalidade(String idFuncionalidade) {
         this.idFuncionalidade = idFuncionalidade;
     }
 

@@ -74,10 +74,10 @@ public class OcorrenciaTipoConfiguracaoService {
         if (request == null || request.tipoNegocio() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O tipo de ocorrência é obrigatório.");
         }
-        validarId(request.idFuncionalidade(), "ID da funcionalidade");
+        validarCodigoFuncionalidade(request.idFuncionalidade());
         validarId(request.idTipoOcorrencia(), "ID do tipo de ocorrência");
         validarId(request.idAssunto(), "ID do assunto");
-        if (request.idFuncionalidade() == null
+        if ((request.idFuncionalidade() == null || request.idFuncionalidade().isBlank())
                 && request.idTipoOcorrencia() == null
                 && request.idAssunto() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe pelo menos um ID do Mosia.");
@@ -90,11 +90,25 @@ public class OcorrenciaTipoConfiguracaoService {
         }
     }
 
+    private void validarCodigoFuncionalidade(String codigo) {
+        if (codigo == null || codigo.isBlank()) return;
+        String normalizado = codigo.trim();
+        if (normalizado.length() > 100) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "ID da funcionalidade deve possuir no máximo 100 caracteres.");
+        }
+        if (!normalizado.matches("[A-Za-z0-9._:-]+")) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "ID da funcionalidade possui caracteres inválidos.");
+        }
+    }
+
     private void validarDuplicidade(Long idAtual, OcorrenciaTipoConfigRequest request) {
+        String codigoNormalizado = normalizarCodigo(request.idFuncionalidade());
         boolean duplicada = repository.findAll().stream().anyMatch(config ->
                 (idAtual == null || !Objects.equals(config.getId(), idAtual))
                         && config.getTipoNegocio() == request.tipoNegocio()
-                        && Objects.equals(config.getIdFuncionalidade(), request.idFuncionalidade())
+                        && Objects.equals(config.getIdFuncionalidade(), codigoNormalizado)
                         && Objects.equals(config.getIdTipoOcorrencia(), request.idTipoOcorrencia())
                         && Objects.equals(config.getIdAssunto(), request.idAssunto()));
         if (duplicada) {
@@ -104,10 +118,14 @@ public class OcorrenciaTipoConfiguracaoService {
 
     private void copiar(OcorrenciaTipoConfigRequest request, OcorrenciaTipoConfiguracao entity) {
         entity.setTipoNegocio(request.tipoNegocio());
-        entity.setIdFuncionalidade(request.idFuncionalidade());
+        entity.setIdFuncionalidade(normalizarCodigo(request.idFuncionalidade()));
         entity.setIdTipoOcorrencia(request.idTipoOcorrencia());
         entity.setIdAssunto(request.idAssunto());
         entity.setAtivo(request.ativo() == null || request.ativo());
+    }
+
+    private String normalizarCodigo(String codigo) {
+        return codigo == null || codigo.isBlank() ? null : codigo.trim();
     }
 
     private OcorrenciaTipoConfigResponse toResponse(OcorrenciaTipoConfiguracao entity) {

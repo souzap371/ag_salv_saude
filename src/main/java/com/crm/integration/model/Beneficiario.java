@@ -1,29 +1,27 @@
 package com.crm.integration.model;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Column;
 
 @Entity
 @Table(name = "beneficiarios")
 public class Beneficiario {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "ID", length = 255)
+    private String id;
 
     private String nome;
-    private String chaveUnica;
     private String email;
     private String telefone;
 
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
     public String getNome() {
@@ -31,12 +29,6 @@ public class Beneficiario {
     }
     public void setNome(String nome) {
         this.nome = nome;
-    }
-    public String getChaveUnica() {
-        return chaveUnica;
-    }
-    public void setChaveUnica(String chaveUnica) {
-        this.chaveUnica = chaveUnica;
     }
     public String getEmail() {
         return email;

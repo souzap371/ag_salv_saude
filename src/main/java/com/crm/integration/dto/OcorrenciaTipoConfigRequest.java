@@ -4,7 +4,7 @@ import com.crm.integration.enums.TipoNegocioOcorrencia;
 
 public record OcorrenciaTipoConfigRequest(
         TipoNegocioOcorrencia tipoNegocio,
-        Integer idFuncionalidade,
+        String idFuncionalidade,
         Integer idTipoOcorrencia,
         Integer idAssunto,
         Boolean ativo) {

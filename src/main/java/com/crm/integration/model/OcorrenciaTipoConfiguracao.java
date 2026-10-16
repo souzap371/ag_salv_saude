@@ -4,9 +4,7 @@ import com.crm.integration.enums.TipoNegocioOcorrencia;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "ocorrencia_tipo_config", uniqueConstraints = @UniqueConstraint(
-        name = "uk_ocorrencia_tipo_config",
-        columnNames = {"tipo_negocio", "id_funcionalidade", "id_tipo_ocorrencia", "id_assunto"}))
+@Table(name = "ocorrencia_tipo_config")
 public class OcorrenciaTipoConfiguracao {
 
     @Id
@@ -17,8 +15,8 @@ public class OcorrenciaTipoConfiguracao {
     @Column(name = "tipo_negocio", nullable = false, length = 60)
     private TipoNegocioOcorrencia tipoNegocio;
 
-    @Column(name = "id_funcionalidade")
-    private Integer idFuncionalidade;
+    @Column(name = "codigo_funcionalidade", length = 100)
+    private String idFuncionalidade;
 
     @Column(name = "id_tipo_ocorrencia")
     private Integer idTipoOcorrencia;
@@ -32,8 +30,8 @@ public class OcorrenciaTipoConfiguracao {
     public Long getId() { return id; }
     public TipoNegocioOcorrencia getTipoNegocio() { return tipoNegocio; }
     public void setTipoNegocio(TipoNegocioOcorrencia tipoNegocio) { this.tipoNegocio = tipoNegocio; }
-    public Integer getIdFuncionalidade() { return idFuncionalidade; }
-    public void setIdFuncionalidade(Integer idFuncionalidade) { this.idFuncionalidade = idFuncionalidade; }
+    public String getIdFuncionalidade() { return idFuncionalidade; }
+    public void setIdFuncionalidade(String idFuncionalidade) { this.idFuncionalidade = idFuncionalidade; }
     public Integer getIdTipoOcorrencia() { return idTipoOcorrencia; }
     public void setIdTipoOcorrencia(Integer idTipoOcorrencia) { this.idTipoOcorrencia = idTipoOcorrencia; }
     public Integer getIdAssunto() { return idAssunto; }

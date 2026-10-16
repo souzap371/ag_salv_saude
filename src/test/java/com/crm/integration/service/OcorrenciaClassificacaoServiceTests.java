@@ -15,12 +15,12 @@ class OcorrenciaClassificacaoServiceTests {
     @Test
     void deveEscolherConfiguracaoMaisEspecifica() {
         OcorrenciaTipoConfiguracaoRepository repository = mock(OcorrenciaTipoConfiguracaoRepository.class);
-        OcorrenciaTipoConfiguracao generica = configuracao(TipoNegocioOcorrencia.OUTRA, 48, null, null);
-        OcorrenciaTipoConfiguracao autorizacao = configuracao(TipoNegocioOcorrencia.SOLICITACAO_AUTORIZACAO, 48, 1895, 173);
+        OcorrenciaTipoConfiguracao generica = configuracao(TipoNegocioOcorrencia.OUTRA, "9999.00069", null, null);
+        OcorrenciaTipoConfiguracao autorizacao = configuracao(TipoNegocioOcorrencia.SOLICITACAO_AUTORIZACAO, "9999.00069", 1895, 173);
         when(repository.findByAtivoTrue()).thenReturn(List.of(generica, autorizacao));
 
         Ocorrencia ocorrencia = new Ocorrencia();
-        ocorrencia.setIdFuncionalidade(48);
+        ocorrencia.setIdFuncionalidade("9999.00069");
         ocorrencia.setIdTipoOcorrencia(1895);
         ocorrencia.setIdAssunto(173);
 
@@ -41,7 +41,7 @@ class OcorrenciaClassificacaoServiceTests {
     }
 
     private OcorrenciaTipoConfiguracao configuracao(
-            TipoNegocioOcorrencia tipo, Integer funcionalidade, Integer tipoOcorrencia, Integer assunto) {
+            TipoNegocioOcorrencia tipo, String funcionalidade, Integer tipoOcorrencia, Integer assunto) {
         OcorrenciaTipoConfiguracao config = new OcorrenciaTipoConfiguracao();
         config.setTipoNegocio(tipo);
         config.setIdFuncionalidade(funcionalidade);

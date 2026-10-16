@@ -7,20 +7,19 @@ import com.crm.integration.model.AlterarDatasRequest;
 import com.crm.integration.model.Anotacao;
 import com.crm.integration.model.AnotacaoRequest;
 import com.crm.integration.model.AutorizacaoSolicitada;
+import com.crm.integration.model.Beneficiario;
 import com.crm.integration.model.MosiaCallbackRequest;
 import com.crm.integration.model.MosiaStatusUpdateRequest;
 import com.crm.integration.model.Ocorrencia;
 import com.crm.integration.model.OcorrenciaResponse;
 import com.crm.integration.model.UltimosProtocolosResponse;
 import com.crm.integration.repository.AutorizacaoRepository;
+import com.crm.integration.repository.BeneficiarioRepository;
 import com.crm.integration.repository.OcorrenciaRepository;
 import com.crm.integration.service.MosiaIntegrationService;
 import com.crm.integration.service.OcorrenciaClassificacaoService;
 import com.crm.integration.service.OcorrenciaAnexoService;
 import com.crm.integration.service.MosiaStatusConfiguracaoService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jakarta.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -35,7 +34,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -54,7 +52,7 @@ public class OcorrenciaController {
         private OcorrenciaRepository ocorrenciaRepository;
 
         @Autowired
-        private ObjectMapper objectMapper;
+        private BeneficiarioRepository beneficiarioRepository;
 
         @Autowired
         private OcorrenciaClassificacaoService ocorrenciaClassificacaoService;
@@ -67,6 +65,7 @@ public class OcorrenciaController {
 
         // CRIAR OCORRENCIA
         @PostMapping
+        @Transactional
         public ResponseEntity<OcorrenciaResponse> criarOcorrencia(
                         @RequestHeader("Authorization") String authorization,
                         @RequestBody Ocorrencia ocorrencia) {
@@ -80,45 +79,21 @@ public class OcorrenciaController {
                                                         System.currentTimeMillis(),
                                                         null));
                 }
-                // 1) seu fluxo normal de validação e save
                 ocorrencia.setDataRegistro(LocalDateTime.now());
                 ocorrencia.setDataAtualizacao(LocalDateTime.now());
                 ocorrenciaClassificacaoService.classificar(ocorrencia);
+                salvarOuAtualizarBeneficiario(ocorrencia);
                 Ocorrencia saved = ocorrenciaRepository.save(ocorrencia);
-
-                // 2) agora serializa e insere na tabela de BLOBs
-
-                try {
-                        byte[] json = objectMapper.writeValueAsBytes(saved);
-                        Timestamp dtCarga = Timestamp.valueOf(saved.getDataRegistro());
-                        Timestamp dtProcessa = Timestamp.valueOf(saved.getDataAtualizacao());
-                        ocorrenciaRepository.saveBlob(
-                                        saved.getId(),
-                                        json,
-                                        dtCarga,
-                                        dtProcessa);
-
-                } catch (JsonProcessingException e) {
-                        log.error("Erro ao serializar Ocorrencia para BLOB", e);
-                        return ResponseEntity
-                                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                        .body(new OcorrenciaResponse(
-                                                        false,
-                                                        "Erro interno ao processar a ocorrência.",
-                                                        500,
-                                                        System.currentTimeMillis(),
-                                                        null));
-                }
-                // 4) Resposta de sucesso
                 return ResponseEntity.ok(new OcorrenciaResponse(
                                 true,
-                                "Ocorrência criada e blob salvo com sucesso.",
+                                "Ocorrência criada com sucesso.",
                                 200,
                                 System.currentTimeMillis(),
                                 saved));
         }
 
         @PostMapping("/mosia")
+        @Transactional
         public ResponseEntity<OcorrenciaResponse> receberOcorrenciaDoMosia(
                         @RequestHeader("Authorization") String authorization,
                         @RequestBody MosiaRequestDTO payload) {
@@ -137,11 +112,14 @@ public class OcorrenciaController {
                 try {
                         // Mapeia o DTO do Mosia para a entidade Ocorrencia
                         Ocorrencia ocorrencia = OcorrenciaMapper.fromMosia(payload.getOcorrencia());
+                        salvarOuAtualizarBeneficiario(ocorrencia);
 
                         // Define a funcionalidade da ocorrência (vinda do payload)
-                        // ocorrencia.setIdFuncionalidade(payload.getFuncionalidade().getId().intValue());
                         if (payload.getFuncionalidade() != null && payload.getFuncionalidade().getId() != null) {
-                                ocorrencia.setIdFuncionalidade(Integer.parseInt(payload.getFuncionalidade().getId()));
+                                String codigoFuncionalidade = payload.getFuncionalidade().getId().trim();
+                                if (!codigoFuncionalidade.isEmpty()) {
+                                        ocorrencia.setIdFuncionalidade(codigoFuncionalidade);
+                                }
                         }
 
                         // Define data de registro e atualização
@@ -163,34 +141,13 @@ public class OcorrenciaController {
                         // Salva a ocorrência no banco
                         Ocorrencia saved = ocorrenciaRepository.save(ocorrencia);
 
-                        // Serializa e salva como BLOB
-                        byte[] json = objectMapper.writeValueAsBytes(saved);
-                        Timestamp dtCarga = Timestamp.valueOf(saved.getDataRegistro());
-                        Timestamp dtProcessa = Timestamp.valueOf(saved.getDataAtualizacao());
-
-                        ocorrenciaRepository.saveBlob(
-                                        saved.getId(),
-                                        json,
-                                        dtCarga,
-                                        dtProcessa);
-
                         return ResponseEntity.ok(new OcorrenciaResponse(
                                         true,
-                                        "Ocorrência do MOSIA criada e blob salvo com sucesso.",
+                                        "Ocorrência do MOSIA criada com sucesso.",
                                         200,
                                         System.currentTimeMillis(),
                                         saved));
 
-                } catch (JsonProcessingException e) {
-                        log.error("Erro ao serializar Ocorrencia para BLOB", e);
-                        return ResponseEntity
-                                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                        .body(new OcorrenciaResponse(
-                                                        false,
-                                                        "Erro interno ao processar a ocorrência.",
-                                                        500,
-                                                        System.currentTimeMillis(),
-                                                        null));
                 } catch (Exception e) {
                         log.error("Erro geral ao processar payload do MOSIA", e);
                         return ResponseEntity
@@ -202,6 +159,30 @@ public class OcorrenciaController {
                                                         System.currentTimeMillis(),
                                                         null));
                 }
+        }
+
+        private void salvarOuAtualizarBeneficiario(Ocorrencia ocorrencia) {
+                Beneficiario recebido = ocorrencia.getBeneficiario();
+                if (recebido == null || recebido.getId() == null) {
+                        return;
+                }
+
+                Beneficiario persistido = beneficiarioRepository.findById(recebido.getId())
+                                .map(existente -> {
+                                        if (recebido.getNome() != null && !recebido.getNome().isBlank()) {
+                                                existente.setNome(recebido.getNome());
+                                        }
+                                        if (recebido.getEmail() != null && !recebido.getEmail().isBlank()) {
+                                                existente.setEmail(recebido.getEmail());
+                                        }
+                                        if (recebido.getTelefone() != null && !recebido.getTelefone().isBlank()) {
+                                                existente.setTelefone(recebido.getTelefone());
+                                        }
+                                        return existente;
+                                })
+                                .orElseGet(() -> beneficiarioRepository.save(recebido));
+
+                ocorrencia.setBeneficiario(persistido);
         }
 
         @GetMapping("/{protocolo}")

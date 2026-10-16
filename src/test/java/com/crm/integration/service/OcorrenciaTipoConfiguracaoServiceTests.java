@@ -27,10 +27,10 @@ class OcorrenciaTipoConfiguracaoServiceTests {
         OcorrenciaTipoConfiguracaoService service = new OcorrenciaTipoConfiguracaoService(repository);
 
         var response = service.criar(new OcorrenciaTipoConfigRequest(
-                TipoNegocioOcorrencia.ATUALIZACAO_CADASTRAL, 48, 128, 173, true));
+                TipoNegocioOcorrencia.ATUALIZACAO_CADASTRAL, "9999.00069", 128, 173, true));
 
         assertEquals(TipoNegocioOcorrencia.ATUALIZACAO_CADASTRAL, response.tipoNegocio());
-        assertEquals(48, response.idFuncionalidade());
+        assertEquals("9999.00069", response.idFuncionalidade());
         verify(repository).saveAndFlush(any(OcorrenciaTipoConfiguracao.class));
     }
 
@@ -44,6 +44,20 @@ class OcorrenciaTipoConfiguracaoServiceTests {
                         TipoNegocioOcorrencia.ATUALIZACAO_CADASTRAL, null, null, null, true)));
 
         assertEquals(400, erro.getStatusCode().value());
+    }
+
+    @Test
+    void aceitaCodigoDeFuncionalidadeComPonto() {
+        OcorrenciaTipoConfiguracaoRepository repository = mock(OcorrenciaTipoConfiguracaoRepository.class);
+        when(repository.findAll()).thenReturn(List.of());
+        when(repository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        OcorrenciaTipoConfiguracaoService service = new OcorrenciaTipoConfiguracaoService(repository);
+
+        var response = service.criar(new OcorrenciaTipoConfigRequest(
+                TipoNegocioOcorrencia.SOLICITACAO_AUTORIZACAO,
+                " 9999.00069 ", 1895, null, true));
+
+        assertEquals("9999.00069", response.idFuncionalidade());
     }
 
     @Test
