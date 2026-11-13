@@ -668,6 +668,10 @@ public class MensageriaScheduler {
                     mensagemAtual.getMensagem()
             );
 
+            request.setIdFuncionalidade(
+                    mensagemAtual.getIdFuncionalidade()
+            );
+
             boolean enviado;
 
             /*

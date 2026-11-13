@@ -158,11 +158,15 @@ public class MensageriaService {
 
         validarRequest(request);
 
+        String funcionalidade = primeiraNaoVazia(
+                request.getIdFuncionalidade(), idFuncionalidade);
+        request.setIdFuncionalidade(funcionalidade);
+
         AgMensApp entity = new AgMensApp();
         entity.setChaveUnica(request.getChaveUnica());
         entity.setMensagem(request.getMsg());
         entity.setDtInclusao(LocalDateTime.now(ZONE_ID));
-        entity.setIdFuncionalidade(idFuncionalidade);
+        entity.setIdFuncionalidade(funcionalidade);
         entity.setIdRegistro(idRegistro);
         entity.setProc("N");
 
@@ -193,11 +197,13 @@ public class MensageriaService {
             String idRegistro,
             Long numeroGuia) {
         validarRequest(request);
+        String funcionalidade = primeiraNaoVazia(
+                request.getIdFuncionalidade(), idFuncionalidade);
         AgMensApp entity = new AgMensApp();
         entity.setChaveUnica(request.getChaveUnica().trim());
         entity.setMensagem(request.getMsg().trim());
         entity.setDtInclusao(LocalDateTime.now(ZONE_ID));
-        entity.setIdFuncionalidade(idFuncionalidade);
+        entity.setIdFuncionalidade(funcionalidade);
         entity.setIdRegistro(idRegistro);
         entity.setNumeroGuia(numeroGuia);
         entity.setProc("N");
@@ -275,5 +281,14 @@ public class MensageriaService {
                 && !request.getChaveUnica().isBlank()
                 && request.getMsg() != null
                 && !request.getMsg().isBlank();
+    }
+
+    private String primeiraNaoVazia(String preferencial, String alternativa) {
+        if (preferencial != null && !preferencial.isBlank()) {
+            return preferencial.trim();
+        }
+        return alternativa == null || alternativa.isBlank()
+                ? null
+                : alternativa.trim();
     }
 }

@@ -12,6 +12,7 @@ ocorrências do Mosia e pelo envio de mensagens ao aplicativo.
 - Catálogo de status separado por tipo de ocorrência.
 - Histórico de alterações de status.
 - Mensageria genérica por ocorrência através da tabela `AG_MENSAPP`.
+- Envio opcional de `IDFUNCIONALIDADE` ao Mosia para tornar o push clicável.
 - Registro opcional do número da guia em `AG_MENSAPP.NNUMEGUIA`.
 - Armazenamento dos formulários recebidos em `FORMULARIOS.DADOS_JSON`.
 - Painel de monitoramento e administração em `/status.html`.
